@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   }
   if (body.length < 30) {
     return NextResponse.json(
-      { ok: false, message: 'Add more detail — dates, what you saw, who you spoke to.' },
+      { ok: false, message: 'Add more detail: dates, what you saw, who you spoke to.' },
       { status: 400 },
     );
   }
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       message:
-        'Checked and accepted, but no database is connected yet — this was not stored.',
+        'Checked and accepted, but no database is connected yet, so this was not stored.',
     });
   }
 

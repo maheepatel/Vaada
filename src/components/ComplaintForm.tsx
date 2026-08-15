@@ -107,10 +107,10 @@ export function ComplaintForm({
           onChange={(e) => onPickCommitment(e.target.value)}
           className="mt-2 w-full rounded-lg border bg-paper px-3 py-2 text-[0.88rem] outline-none focus:border-[var(--brand)]"
         >
-          <option value="">No — this is something new</option>
+          <option value="">No, this is something new</option>
           {options.map((o) => (
             <option key={o.id} value={o.id}>
-              {o.title} — {o.place}
+              {o.title} · {o.place}
             </option>
           ))}
         </select>

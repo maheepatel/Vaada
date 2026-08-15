@@ -16,11 +16,11 @@ const KIND_LABEL: Record<ReceiptKind, string> = {
  * that may be deleted tomorrow does not.
  */
 const KIND_WEIGHT: Record<ReceiptKind, string> = {
-  written_order: 'Strongest — an order carrying a signature or seal',
-  minutes: 'Strong — a record made at the time by the parties present',
-  video: 'Strong — the commitment on camera',
-  social_post: 'Moderate — a public statement, deletable',
-  press_report: 'Moderate — independent, but second-hand',
+  written_order: 'Strongest: an order carrying a signature or seal',
+  minutes: 'Strong: a record made at the time by the parties present',
+  video: 'Strong: the commitment on camera',
+  social_post: 'Moderate: a public statement, deletable',
+  press_report: 'Moderate: independent, but second hand',
 };
 
 /**
@@ -179,7 +179,7 @@ function ReceiptCard({ receipt: r }: { receipt: Receipt }) {
             </div>
           ) : (
             <p className="mt-2.5 text-[0.75rem] text-ink-3">
-              No archived copy held — this receipt is a link only.
+              No archived copy held. This receipt is a link only.
             </p>
           )}
 

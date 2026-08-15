@@ -46,7 +46,7 @@ export default async function RegisterPage({ searchParams }: PageProps<'/registe
     <div className="mx-auto max-w-[1100px] px-4 py-10 sm:px-6">
       <header className="max-w-3xl">
         <p className="eyebrow">The register</p>
-        <h1 className="display mt-2 text-[2.3rem] leading-tight sm:text-[2.9rem]">
+        <h1 className="h-page display mt-2">
           Every promise on the record
         </h1>
         <p className="mt-3 text-[0.98rem] leading-relaxed text-ink-2">

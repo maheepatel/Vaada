@@ -151,8 +151,8 @@ export function PlainReading({
         <>
           <strong className="font-semibold" style={{ color: BAND_STYLE.urgent.softOn }}>
             {dueSoon} run out in the next two days
-          </strong>{' '}
-          — those are the ones where showing up still changes the outcome.
+          </strong>
+          . Those are the ones where showing up still changes the outcome.
         </>
       ) : (
         <>Nothing is due in the next two days.</>

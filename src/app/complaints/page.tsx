@@ -18,7 +18,7 @@ const STATUS_TONE: Record<ComplaintStatus, { bg: string; fg: string; label: stri
   open: {
     bg: BAND_STYLE.broken.soft,
     fg: BAND_STYLE.broken.softOn,
-    label: 'Open — no response',
+    label: 'Open, no response yet',
   },
   acknowledged: {
     bg: BAND_STYLE.soon.soft,
@@ -55,13 +55,13 @@ export default async function ComplaintsPage() {
     <div className="mx-auto max-w-[1100px] px-4 py-10 sm:px-6">
       <header className="max-w-3xl">
         <p className="eyebrow">Complaints register</p>
-        <h1 className="display mt-2 text-[2.3rem] leading-tight sm:text-[2.9rem]">
+        <h1 className="h-page display mt-2">
           What people are actually seeing
         </h1>
         <p className="mt-3 text-[0.98rem] leading-relaxed text-ink-2">
           A promise can be marked done on paper and still be nothing on the ground.
-          These are the objections residents have filed — against a specific
-          commitment, or about something nobody has promised anything about yet.
+          These are the objections residents have filed, either against a specific
+          commitment or about something nobody has promised anything about yet.
         </p>
         <Link
           href="/complaints/new"

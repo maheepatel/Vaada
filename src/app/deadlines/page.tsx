@@ -54,7 +54,7 @@ export default async function DeadlinesPage() {
     <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6">
       <header className="max-w-3xl">
         <p className="eyebrow">Deadline board</p>
-        <h1 className="display mt-2 text-[2.3rem] leading-tight sm:text-[2.9rem]">
+        <h1 className="h-page display mt-2">
           What runs out next
         </h1>
         <p className="mt-3 text-[0.98rem] leading-relaxed text-ink-2">
@@ -105,7 +105,7 @@ export default async function DeadlinesPage() {
           ))}
         </div>
 
-        <aside className="space-y-8 lg:sticky lg:top-20 lg:self-start">
+        <aside className="space-y-8 lg:sticky lg:top-[calc(var(--header-h)+1rem)] lg:self-start">
           <section>
             <SectionHeading
               eyebrow="Past the date"

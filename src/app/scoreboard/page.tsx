@@ -18,7 +18,7 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: 'Scoreboard',
   description:
-    'Country-wide stats, state and district rankings, and every issue raised — scored on what actually got delivered.',
+    'Country-wide stats, state and district rankings, and every issue raised, scored on what actually got delivered.',
 };
 
 export default async function ScoreboardPage() {
@@ -45,14 +45,14 @@ export default async function ScoreboardPage() {
     <div className="mx-auto max-w-[1400px] px-4 py-9 sm:px-6">
       <header className="max-w-3xl">
         <p className="eyebrow">Scoreboard</p>
-        <h1 className="display mt-2 text-[2.2rem] leading-tight sm:text-[2.9rem]">
+        <h1 className="h-page display mt-2">
           Who is actually delivering
         </h1>
         <p className="mt-3 text-[0.96rem] leading-relaxed text-ink-2">
           Every number here is counted from the same rows the map is drawn from.
-          Places are scored only on promises that have been <em>decided</em> — kept,
-          missed or disputed — because ranking somewhere on three promises that are
-          all still inside their window would say nothing about anybody.
+          Places are scored only on promises that have been <em>decided</em>, meaning
+          kept, missed or disputed, because ranking somewhere on three promises
+          that are all still inside their window would say nothing about anybody.
         </p>
       </header>
 
@@ -113,7 +113,7 @@ export default async function ScoreboardPage() {
           }
           title="District league"
         >
-          State-wide commitments are excluded here — they belong to no district and
+          State-wide commitments are excluded here. They belong to no district and
           would distort whichever one they landed in.
         </SectionHeading>
         <LeagueTable rows={districts} showState />
@@ -124,8 +124,8 @@ export default async function ScoreboardPage() {
         <div>
           <SectionHeading eyebrow="Delivery speed" title="Who finishes early">
             Of the promises that were kept, how much of the agreed window had gone
-            by the time evidence was accepted — taken from the audit trail, not
-            from today&rsquo;s date. Lower is faster.
+            by the time evidence was accepted, taken from the audit trail rather than
+            today&rsquo;s date. Lower is faster.
           </SectionHeading>
           {fastest.length === 0 ? (
             <Empty
@@ -301,7 +301,7 @@ function LeagueTable({ rows, showState }: { rows: PlaceScore[]; showState?: bool
                 <tr key={`${r.stateName ?? ''}-${r.slug}`}>
                   {/* Every row gets a position. Withholding it made the whole
                       table read as broken while the register is small, and the
-                      order is meaningful even when the sample is not yet solid —
+                      order is meaningful even when the sample is not yet solid;
                       the provisional badge carries that caveat instead. */}
                   <td
                     className="tnum px-3 py-2.5 font-bold"
@@ -325,7 +325,7 @@ function LeagueTable({ rows, showState }: { rows: PlaceScore[]; showState?: bool
                   </td>
                   <td className="tnum px-3 py-2.5">
                     <span className="display text-[1.15rem]">
-                      {r.score === null ? '—' : r.score}
+                      {r.score === null ? 'n/a' : r.score}
                     </span>
                   </td>
                   <td className="px-3 py-2.5">

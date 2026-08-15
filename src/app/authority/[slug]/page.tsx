@@ -29,7 +29,7 @@ export async function generateMetadata({
     .find((o) => officialSlug(o) === slug);
   if (!official) return { title: 'Official not found' };
   return {
-    title: `${official.name} — promises and record`,
+    title: official.name,
     description: `Every public commitment ${official.name} (${official.role}) is answerable for, with deadlines and outcomes.`,
   };
 }
@@ -80,12 +80,12 @@ export default async function AuthorityPage({
 
       <header className="max-w-3xl">
         <p className="eyebrow">Accountability record</p>
-        <h1 className="display mt-2 text-[2.3rem] leading-tight sm:text-[2.9rem]">
+        <h1 className="h-page display mt-2">
           {o.name}
         </h1>
         <p className="mt-2 text-[0.95rem] font-medium text-ink-2">
           {record.roles.join(' · ')}
-          {o.body ? ` — ${o.body}` : ''}
+          {o.body ? ` · ${o.body}` : ''}
         </p>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -113,7 +113,7 @@ export default async function AuthorityPage({
                 color: 'var(--band-urgent-ink)',
               }}
             >
-              No verified contact on file — notices cannot be sent
+              No verified contact on file, so notices cannot be sent
             </span>
           )}
         </div>
@@ -135,7 +135,7 @@ export default async function AuthorityPage({
         />
         <StatTile
           label="Kept rate"
-          value={record.keptRate === null ? '—' : percent(record.keptRate)}
+          value={record.keptRate === null ? 'n/a' : percent(record.keptRate)}
           hint="of decided promises"
         />
         <StatTile
@@ -174,7 +174,7 @@ export default async function AuthorityPage({
             <p className="mt-1.5 text-[0.8rem] leading-relaxed text-ink-2">
               Every row is a commitment this office accepted in public, traceable
               to a source. Where a promise was accepted jointly, it counts
-              against each name — so that no one can point at the other.
+              against each name, so that no one can point at the other.
             </p>
             <p className="mt-2 text-[0.8rem] leading-relaxed text-ink-2">
               &ldquo;Missed&rdquo; means the deadline passed with no verified proof of

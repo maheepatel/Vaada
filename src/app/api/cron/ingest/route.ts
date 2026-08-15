@@ -58,7 +58,7 @@ async function fetchSource(source: (typeof SOURCES)[number]): Promise<{
     // Anonymous requests to X return 402. Rather than pretend, this reports
     // the reason so the operator can see exactly why the source is quiet.
     if (!process.env.X_BEARER_TOKEN) {
-      return { items: [], error: 'X_BEARER_TOKEN not set — source skipped.' };
+      return { items: [], error: 'X_BEARER_TOKEN not set, so this source was skipped.' };
     }
   }
 

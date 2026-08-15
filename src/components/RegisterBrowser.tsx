@@ -89,7 +89,7 @@ export function RegisterBrowser({
 
   return (
     <>
-      <div className="sticky top-14 z-30 -mx-4 mb-5 border-b bg-[color-mix(in_srgb,var(--paper)_92%,transparent)] px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
+      <div className="sticky top-[var(--header-h)] z-30 -mx-4 mb-5 border-b bg-[color-mix(in_srgb,var(--paper)_92%,transparent)] px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
         <div className="flex flex-wrap items-center gap-2.5">
           <input
             value={q}

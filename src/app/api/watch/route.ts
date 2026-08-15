@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       message:
-        'Checked, but no database is connected yet — this subscription was not stored.',
+        'Checked, but no database is connected yet, so this subscription was not stored.',
     });
   }
 
@@ -73,6 +73,6 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     ok: true,
-    message: 'Check your inbox and confirm — you will not get anything until you do.',
+    message: 'Check your inbox and confirm. You will not get anything until you do.',
   });
 }

@@ -72,7 +72,7 @@ export function PlacePicker({
         value={value.state}
         onChange={setState}
         options={stateNames}
-        placeholder="Start typing — Rajasthan…"
+        placeholder="Start typing: Rajasthan"
       />
 
       <Combo
@@ -98,7 +98,7 @@ export function PlacePicker({
         placeholder={value.district ? 'Thanagazi…' : 'Pick a district first'}
         note={
           value.district && subdistricts.length === 0
-            ? 'Not in our list for this district — type it in'
+            ? 'Not in our list for this district. Type it in'
             : undefined
         }
       />
@@ -112,7 +112,7 @@ export function PlacePicker({
         placeholder={value.subdistrict ? 'Jodhawas…' : 'Pick a tehsil first'}
         note={
           value.subdistrict && villages.length === 0
-            ? 'Not in our list — type it in'
+            ? 'Not in our list. Type it in'
             : undefined
         }
       />
@@ -137,7 +137,7 @@ export function PlacePicker({
         onChange={(udise) => onChange({ ...value, udise })}
         placeholder="11 digits, if you know it"
         inputMode="numeric"
-        note="The national school code. It makes this row joinable to official enrolment and infrastructure data — by far the most useful thing you can add."
+        note="The national school code. It makes this row joinable to official enrolment and infrastructure data, by far the most useful thing you can add."
       />
 
       <Field

@@ -134,8 +134,8 @@ export function ProofForm({
         <div className="grid grid-cols-2 gap-2">
           {(
             [
-              { v: 'supports', label: 'Yes — it was done', tone: 'var(--band-kept)' },
-              { v: 'refutes', label: 'No — it was not', tone: 'var(--band-broken)' },
+              { v: 'supports', label: 'Yes, it was done', tone: 'var(--band-kept)' },
+              { v: 'refutes', label: 'No, it was not', tone: 'var(--band-broken)' },
             ] as const
           ).map((opt) => (
             <label

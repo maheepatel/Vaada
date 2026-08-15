@@ -194,6 +194,39 @@ body {
   letter-spacing: -0.015em;
 }
 
+/*
+  Fluid heading sizes.
+
+  Breakpoint steps left visible jumps: a 380px phone and a 500px foldable got
+  the same type, and a 1024px laptop got the same as a 27" monitor. These scale
+  continuously between a floor that stays readable on the narrowest phone and a
+  ceiling that stops the display face shouting on a large screen.
+*/
+.h-page {
+  font-size: clamp(1.7rem, 1.05rem + 2.9vw, 2.9rem);
+  line-height: 1.06;
+}
+
+.h-section {
+  font-size: clamp(1.3rem, 1.05rem + 1.1vw, 1.8rem);
+  line-height: 1.15;
+}
+
+/*
+  The header is one bar on large screens and two on small, because the nav
+  strip drops below it. Anything sticky underneath has to clear whichever is
+  showing, so the height lives here rather than being hard-coded per component.
+*/
+:root {
+  --header-h: 6.4rem;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --header-h: 3.5rem;
+  }
+}
+
 /* Section eyebrows — small, wide, muted. Used above every major block. */
 .eyebrow {
   font-size: 0.6875rem;
@@ -236,12 +269,12 @@ body {
   huge tile shouting or a sliver becoming illegible.
 */
 .tile-label {
-  font-size: clamp(0.56rem, min(9.5cqh, 6.5cqw), 0.95rem);
+  font-size: clamp(0.52rem, min(9cqh, 6.2cqw), 0.95rem);
   line-height: 1.16;
 }
 
 .tile-sub {
-  font-size: clamp(0.5rem, min(6.5cqh, 4.6cqw), 0.72rem);
+  font-size: clamp(0.47rem, min(6cqh, 4.4cqw), 0.72rem);
   line-height: 1.2;
 }
 

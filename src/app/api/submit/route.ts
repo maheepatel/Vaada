@@ -122,7 +122,7 @@ export async function POST(request: Request) {
   if (!sb) {
     return NextResponse.json({
       ok: true,
-      message: `${rows.length} promise${rows.length === 1 ? '' : 's'} parsed and validated, but no database is connected yet — nothing was stored.`,
+      message: `${rows.length} promise${rows.length === 1 ? '' : 's'} parsed and validated, but no database is connected yet, so nothing was stored.`,
     });
   }
 

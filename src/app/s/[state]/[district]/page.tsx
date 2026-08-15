@@ -35,7 +35,7 @@ export async function generateMetadata({
   const d = roll?.districts.find((x) => x.slug === district);
   if (!roll || !d) return { title: 'District not found' };
   return {
-    title: `${d.name}, ${roll.name} — promises and deadlines`,
+    title: `${d.name}, ${roll.name}`,
     description: `${d.live} public commitments logged in ${d.name}, ${roll.name}, with deadlines and citizen evidence.`,
   };
 }
@@ -86,7 +86,7 @@ export default async function DistrictPage({
 
       <header className="max-w-4xl">
         <p className="eyebrow">{state.name} · district register</p>
-        <h1 className="display mt-2 text-[2.1rem] leading-tight sm:text-[2.7rem]">
+        <h1 className="h-page display mt-2">
           {district.name}
         </h1>
         <p className="mt-2 text-[0.92rem] leading-snug text-ink-2">
@@ -113,7 +113,7 @@ export default async function DistrictPage({
         />
       </div>
 
-      {/* The map, immediately — full width so tiles are large enough to read
+      {/* The map, immediately. Full width so tiles are large enough to read
           without hovering, which is the whole point at district level. */}
       <Card className="mt-4 overflow-hidden">
         <div className="aspect-[16/7] p-1.5 sm:aspect-[16/6]">
@@ -173,7 +173,7 @@ export default async function DistrictPage({
         </div>
 
         {officials.length > 0 && (
-          <aside className="lg:order-2 lg:sticky lg:top-20 lg:self-start">
+          <aside className="lg:order-2 lg:sticky lg:top-[calc(var(--header-h)+1rem)] lg:self-start">
             <Card className="overflow-hidden">
               <p className="eyebrow border-b bg-surface-2 px-4 py-2.5">
                 Answerable here

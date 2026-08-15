@@ -70,7 +70,7 @@ export default async function ReviewPage({ searchParams }: PageProps<'/review'>)
           <p className="mt-2 text-[0.85rem] leading-relaxed text-ink-2">
             Set <code className="font-mono">REVIEW_TOKEN</code> in the environment,
             then open this page with <code className="font-mono">?token=…</code>.
-            Until then the queue stays closed — unreviewed machine output names
+            Until then the queue stays closed. Unreviewed machine output names
             real officials and should not sit on a public URL.
           </p>
         </Card>
@@ -143,7 +143,7 @@ export default async function ReviewPage({ searchParams }: PageProps<'/review'>)
       <section className="mt-10">
         <h2 className="display text-2xl">Submitted by people</h2>
         <p className="mt-1 text-[0.85rem] text-ink-2">
-          Review these first — somebody watched this happen.
+          Review these first. Somebody watched this happen.
         </p>
         <div className="mt-4 space-y-3">
           {submissions.length === 0 ? (
@@ -197,8 +197,8 @@ export default async function ReviewPage({ searchParams }: PageProps<'/review'>)
                       <span className="font-medium">{d.title}</span>
                       <span className="text-ink-3">
                         {d.deadlineLabel
-                          ? ` — “${d.deadlineLabel}” → ${formatDate(d.deadline)}`
-                          : ' — no deadline'}
+                          ? `: “${d.deadlineLabel}”, due ${formatDate(d.deadline)}`
+                          : ', no deadline'}
                       </span>
                     </li>
                   ))}
@@ -255,7 +255,7 @@ export default async function ReviewPage({ searchParams }: PageProps<'/review'>)
                       <span className="font-medium">{d.title}</span>
                       <span className="text-ink-3">
                         {d.deadlineLabel
-                          ? ` — “${d.deadlineLabel}” → ${formatDate(d.deadline)}`
+                          ? `: “${d.deadlineLabel}”, due ${formatDate(d.deadline)}`
                           : ''}
                         {' · '}
                         {d.confidence} confidence
@@ -302,7 +302,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div className="mx-auto max-w-[900px] px-4 py-10 sm:px-6">
       <header className="mb-8">
         <p className="eyebrow">Internal</p>
-        <h1 className="display mt-2 text-[2.3rem] leading-tight">Review queue</h1>
+        <h1 className="h-page display mt-2">Review queue</h1>
         <p className="mt-2 text-[0.9rem] text-ink-2">
           Nothing reaches the public map without passing through here.
         </p>

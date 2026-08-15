@@ -18,15 +18,15 @@ const DATE_TIME = new Intl.DateTimeFormat('en-IN', {
 });
 
 export function formatDate(iso: string | null): string {
-  if (!iso) return '—';
+  if (!iso) return 'n/a';
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? '—' : FULL_DATE.format(d);
+  return Number.isNaN(d.getTime()) ? 'n/a' : FULL_DATE.format(d);
 }
 
 export function formatDateTime(iso: string | null): string {
-  if (!iso) return '—';
+  if (!iso) return 'n/a';
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? '—' : DATE_TIME.format(d);
+  return Number.isNaN(d.getTime()) ? 'n/a' : DATE_TIME.format(d);
 }
 
 export interface Parts {
@@ -70,7 +70,7 @@ export function roughDuration(ms: number): string {
 
 /** Indian digit grouping — 1,20,000 rather than 120,000. */
 export function formatCount(n: number | null): string {
-  if (n === null) return '—';
+  if (n === null) return 'n/a';
   return new Intl.NumberFormat('en-IN').format(n);
 }
 

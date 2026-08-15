@@ -51,7 +51,7 @@ const HERALD_BEED = {
 
 const WIKI_JHARKHAND = {
   kind: 'document' as const,
-  publisher: 'Wikipedia — 2026 Jharkhand student protests',
+  publisher: 'Wikipedia, 2026 Jharkhand student protests',
   url: 'https://en.wikipedia.org/wiki/2026_Jharkhand_student_protests',
   date: '2026-08-11',
 };
@@ -152,7 +152,7 @@ export const COMMITMENTS: Commitment[] = [
     slug: 'jodhawas-classrooms-only-for-children',
     title: 'Free the classrooms of all non-teaching use',
     detail:
-      'Repaired classrooms to be used exclusively for children — no storage, no office use, no occupation by any other department.',
+      'Repaired classrooms to be used exclusively for children, with no storage, no office use and no occupation by any other department.',
     state: 'Rajasthan',
     stateSlug: 'rajasthan',
     district: 'Alwar',
@@ -237,7 +237,7 @@ export const COMMITMENTS: Commitment[] = [
     slug: 'jodhawas-playground',
     title: 'Build a playground for the school',
     detail:
-      'A playground to be built for the children of Jodhawas. Accepted at the same sitting — but no date was ever attached to it.',
+      'A playground to be built for the children of Jodhawas. Accepted at the same sitting, but no date was ever attached to it.',
     state: 'Rajasthan',
     stateSlug: 'rajasthan',
     district: 'Alwar',
@@ -517,7 +517,7 @@ export const COMMITMENTS: Commitment[] = [
     weight: 4,
     beneficiaries: 1500,
     accountable: [FATEHPUR_PRINCIPAL, { name: 'District Magistrate, Fatehpur', role: 'District Magistrate', body: 'Fatehpur district administration' }],
-    demandedBy: '~1,500 students of Classes 6–12, Sarvodaya Inter College',
+    demandedBy: '~1,500 students of Classes 6-12, Sarvodaya Inter College',
     sources: [{ ...PRINT_GENALPHA, quote: 'promised four fans per classroom, electrical repairs, furniture within one month' }],
     timeline: [
       { at: '2026-07-28T09:00:00+05:30', kind: 'demand', label: '~1,500 students walk out over heat and unsafe wiring' },
@@ -546,7 +546,7 @@ export const COMMITMENTS: Commitment[] = [
     weight: 3,
     beneficiaries: 1500,
     accountable: [FATEHPUR_PRINCIPAL],
-    demandedBy: '~1,500 students of Classes 6–12, Sarvodaya Inter College',
+    demandedBy: '~1,500 students of Classes 6-12, Sarvodaya Inter College',
     sources: [PRINT_GENALPHA],
     timeline: [
       { at: '2026-07-28T13:00:00+05:30', kind: 'promise', label: 'One-month furniture commitment' },
@@ -573,7 +573,7 @@ export const COMMITMENTS: Commitment[] = [
     weight: 3,
     beneficiaries: 1500,
     accountable: [FATEHPUR_PRINCIPAL],
-    demandedBy: '~1,500 students of Classes 6–12, Sarvodaya Inter College',
+    demandedBy: '~1,500 students of Classes 6-12, Sarvodaya Inter College',
     sources: [{ ...PRINT_GENALPHA, quote: 'RO plant installation, water cooler' }],
     timeline: [
       { at: '2026-07-28T13:00:00+05:30', kind: 'promise', label: 'Accepted with no date attached' },
@@ -600,7 +600,7 @@ export const COMMITMENTS: Commitment[] = [
     weight: 2,
     beneficiaries: 1500,
     accountable: [FATEHPUR_PRINCIPAL],
-    demandedBy: '~1,500 students of Classes 6–12, Sarvodaya Inter College',
+    demandedBy: '~1,500 students of Classes 6-12, Sarvodaya Inter College',
     sources: [PRINT_GENALPHA],
     timeline: [
       { at: '2026-07-28T13:00:00+05:30', kind: 'promise', label: 'Commitment to follow the official menu' },
@@ -627,7 +627,7 @@ export const COMMITMENTS: Commitment[] = [
     weight: 3,
     beneficiaries: 1500,
     accountable: [{ name: 'District Magistrate, Fatehpur', role: 'District Magistrate', body: 'Fatehpur district administration' }],
-    demandedBy: '~1,500 students of Classes 6–12, Sarvodaya Inter College',
+    demandedBy: '~1,500 students of Classes 6-12, Sarvodaya Inter College',
     sources: [PRINT_GENALPHA],
     timeline: [
       { at: '2026-07-28T09:00:00+05:30', kind: 'demand', label: 'Raised in the students’ charter' },
@@ -654,7 +654,7 @@ export const COMMITMENTS: Commitment[] = [
     weight: 3,
     beneficiaries: 1500,
     accountable: [FATEHPUR_PRINCIPAL],
-    demandedBy: '~1,500 students of Classes 6–12, Sarvodaya Inter College',
+    demandedBy: '~1,500 students of Classes 6-12, Sarvodaya Inter College',
     sources: [PRINT_GENALPHA],
     timeline: [
       { at: '2026-07-28T09:00:00+05:30', kind: 'demand', label: 'Raised in the students’ charter' },
@@ -668,7 +668,7 @@ export const COMMITMENTS: Commitment[] = [
     slug: 'pilibhit-jnv-study-devices',
     title: 'Provide tablets, laptops and Wi-Fi for exam prep',
     detail:
-      'Class 10–12 students of Jawahar Navodaya Vidyalaya, Pilibhit protested over the lack of study devices and the seizure of phones. The SDM and police intervened; students were counselled and sent back. No commitment was made.',
+      'Class 10-12 students of Jawahar Navodaya Vidyalaya, Pilibhit protested over the lack of study devices and the seizure of phones. The SDM and police intervened; students were counselled and sent back. No commitment was made.',
     state: 'Uttar Pradesh',
     stateSlug: 'uttar-pradesh',
     district: 'Pilibhit',
@@ -683,7 +683,7 @@ export const COMMITMENTS: Commitment[] = [
     weight: 2,
     beneficiaries: 240,
     accountable: [{ name: 'Sub-Divisional Magistrate, Pilibhit', role: 'SDM', body: 'Pilibhit district administration' }],
-    demandedBy: 'Class 10–12 students of JNV Pilibhit',
+    demandedBy: 'Class 10-12 students of JNV Pilibhit',
     sources: [PRINT_GENALPHA],
     timeline: [
       { at: '2026-07-29T10:00:00+05:30', kind: 'demand', label: 'Protest over study devices and phone seizures' },
@@ -696,9 +696,9 @@ export const COMMITMENTS: Commitment[] = [
   {
     id: 'bih-gaya-committee',
     slug: 'gaya-simuara-inquiry-committee',
-    title: 'Three-member committee to report in 4–5 days',
+    title: 'Three-member committee to report in 4-5 days',
     detail:
-      'After 40–50 students of Simuara Middle School protested on 30 July, the SDM constituted a three-member inquiry committee and set a 4–5 day deadline for resolution.',
+      'After 40-50 students of Simuara Middle School protested on 30 July, the SDM constituted a three-member inquiry committee and set a 4-5 day deadline for resolution.',
     state: 'Bihar',
     stateSlug: 'bihar',
     district: 'Gaya',
@@ -708,12 +708,12 @@ export const COMMITMENTS: Commitment[] = [
     status: 'promised',
     promisedOn: '2026-07-30T15:00:00+05:30',
     deadline: '2026-08-04T15:00:00+05:30',
-    deadlineLabel: 'in 4–5 days',
+    deadlineLabel: 'in 4-5 days',
     progress: 0,
     weight: 3,
     beneficiaries: 180,
     accountable: [GAYA_SDM],
-    demandedBy: '40–50 students of Classes 6–8, Simuara Middle School',
+    demandedBy: '40-50 students of Classes 6-8, Simuara Middle School',
     sources: [{ ...PRINT_GENALPHA, quote: 'established three-member investigation committee with 4-5 day resolution deadline' }],
     timeline: [
       { at: '2026-07-30T11:00:00+05:30', kind: 'demand', label: 'Students protest over meals, water and toilets' },
@@ -726,7 +726,7 @@ export const COMMITMENTS: Commitment[] = [
     slug: 'gaya-simuara-showcause-notices',
     title: 'Issue show-cause notices and withhold salaries',
     detail:
-      'Show-cause notices were issued to school staff and salaries withheld pending explanations — acted on the same day the protest took place.',
+      'Show-cause notices were issued to school staff and salaries withheld pending explanations, acted on the same day the protest took place.',
     state: 'Bihar',
     stateSlug: 'bihar',
     district: 'Gaya',
@@ -741,7 +741,7 @@ export const COMMITMENTS: Commitment[] = [
     weight: 2,
     beneficiaries: 180,
     accountable: [GAYA_SDM],
-    demandedBy: '40–50 students of Classes 6–8, Simuara Middle School',
+    demandedBy: '40-50 students of Classes 6-8, Simuara Middle School',
     sources: [{ ...PRINT_GENALPHA, quote: 'show-cause notices issued to staff; salary withheld pending explanations' }],
     timeline: [
       { at: '2026-07-30T15:00:00+05:30', kind: 'promise', label: 'Action ordered by the SDM' },
@@ -754,7 +754,7 @@ export const COMMITMENTS: Commitment[] = [
     slug: 'gaya-simuara-meals-water',
     title: 'Restore quality mid-day meals and clean water',
     detail:
-      'The substance of the students’ complaint — edible meals, drinking water, working toilets, fans and repaired benches. The inquiry was ordered; the underlying fixes carry no date.',
+      'The substance of the students’ complaint: edible meals, drinking water, working toilets, fans and repaired benches. The inquiry was ordered; the underlying fixes carry no date.',
     state: 'Bihar',
     stateSlug: 'bihar',
     district: 'Gaya',
@@ -769,7 +769,7 @@ export const COMMITMENTS: Commitment[] = [
     weight: 3,
     beneficiaries: 180,
     accountable: [GAYA_SDM],
-    demandedBy: '40–50 students of Classes 6–8, Simuara Middle School',
+    demandedBy: '40-50 students of Classes 6-8, Simuara Middle School',
     sources: [PRINT_GENALPHA],
     timeline: [
       { at: '2026-07-30T15:00:00+05:30', kind: 'promise', label: 'Accepted, subject to the inquiry. No date given.' },
@@ -1151,7 +1151,7 @@ export const RECEIPTS: Receipt[] = [
     commitmentId: 'bih-gaya-committee',
     kind: 'minutes',
     title: 'SDM order constituting the three-member inquiry committee',
-    description: 'Sets the 4–5 day resolution deadline that expired on 4 August.',
+    description: 'Sets the 4-5 day resolution deadline that expired on 4 August.',
     mediaUrls: [],
     documentDate: '2026-07-30',
     signed: true,
@@ -1179,7 +1179,7 @@ export const RECEIPTS: Receipt[] = [
     kind: 'minutes',
     title: 'Record of the 10 August talks with the 11-member student delegation',
     description:
-      'The state agreed to cancel three examinations. No written cancellation notification has been produced since — which is what the open complaint on this row is about.',
+      'The state agreed to cancel three examinations. No written cancellation notification has been produced since, which is what the open complaint on this row is about.',
     mediaUrls: [],
     url: 'https://en.wikipedia.org/wiki/2026_Jharkhand_student_protests',
     documentDate: '2026-08-10',

@@ -32,13 +32,13 @@ export default async function AuthorityIndexPage() {
     <div className="mx-auto max-w-[1100px] px-4 py-10 sm:px-6">
       <header className="max-w-3xl">
         <p className="eyebrow">Accountability index</p>
-        <h1 className="display mt-2 text-[2.3rem] leading-tight sm:text-[2.9rem]">
+        <h1 className="h-page display mt-2">
           Whose desk it sits on
         </h1>
         <p className="mt-3 text-[0.98rem] leading-relaxed text-ink-2">
           A single missed deadline is an anecdote. The same name against nine of
           them, with a kept rate printed beside it, is a record. Nothing here is
-          an editorial judgement — every number is counted from the same rows the
+          an editorial judgement. Every number is counted from the same rows the
           map is drawn from.
         </p>
       </header>
@@ -74,8 +74,8 @@ export default async function AuthorityIndexPage() {
             no verified contact address on file.
           </strong>{' '}
           Breach notices cannot be sent to them. Contact details are never
-          guessed here — a wrong address on an accountability notice is worse
-          than no address — so each one has to be added from a government source.
+          guessed here. A wrong address on an accountability notice is worse than no
+          address, so each one has to be added from a government source.
         </p>
       )}
 
@@ -119,7 +119,7 @@ function AuthorityRow({ record: a }: { record: AuthorityRecord }) {
 
             <p className="mt-0.5 text-[0.8rem] text-ink-3">
               {a.roles.join(' · ')}
-              {a.official.body ? ` — ${a.official.body}` : ''}
+              {a.official.body ? ` · ${a.official.body}` : ''}
             </p>
 
             <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[0.75rem]">
@@ -134,7 +134,7 @@ function AuthorityRow({ record: a }: { record: AuthorityRecord }) {
                 </span>
               )}
               <span className="text-ink-3">
-                kept rate {a.keptRate === null ? '—' : percent(a.keptRate)}
+                kept rate {a.keptRate === null ? 'n/a' : percent(a.keptRate)}
               </span>
               {a.reach > 0 && (
                 <span className="text-ink-3">{formatCount(a.reach)} affected</span>

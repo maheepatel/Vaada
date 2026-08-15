@@ -127,7 +127,7 @@ export function SectionHeading({
     <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
       <div className="max-w-2xl">
         {eyebrow && <p className="eyebrow mb-1.5">{eyebrow}</p>}
-        <h2 className="display text-2xl leading-tight sm:text-[1.75rem]">{title}</h2>
+        <h2 className="h-section display">{title}</h2>
         {children && (
           <p className="mt-1.5 text-sm leading-relaxed text-ink-2">{children}</p>
         )}

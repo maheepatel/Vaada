@@ -66,7 +66,7 @@ export function AccountablePanel({
         <div className="border-t bg-surface-2 px-4 py-3">
           <p className="text-[0.78rem] leading-relaxed text-ink-2">
             The deadline has passed. Ask the office above, in writing, for a
-            status and a revised date — and put whatever they say back on this
+            status and a revised date, then put whatever they say back on this
             entry so the next person does not have to ask again.
           </p>
         </div>

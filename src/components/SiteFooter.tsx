@@ -12,7 +12,7 @@ export function SiteFooter() {
           </p>
           <p className="mt-3 text-xs leading-relaxed text-ink-3">
             Every entry links to its source. A red tile means the deadline passed
-            with no verified proof of completion — it is a claim about the evidence,
+            with no verified proof of completion. It is a claim about the evidence,
             not an allegation about any individual.
           </p>
         </div>

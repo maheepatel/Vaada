@@ -171,7 +171,7 @@ export function SubmitForm() {
             </button>
           </div>
           <p className="mt-1.5 text-[0.8rem] leading-relaxed text-ink-3">
-            Everything in one go — the text, the tagged handles, the link, the
+            Everything in one go: the text, the tagged handles, the link, the
             photos. Sentences that contain a commitment are pulled out on the right
             as you type.
           </p>
@@ -211,7 +211,7 @@ export function SubmitForm() {
           <h2 className="mt-1 text-[1.05rem] font-semibold">Exactly where</h2>
           <p className="mt-1.5 text-[0.8rem] leading-relaxed text-ink-3">
             Each field narrows the next. Anything not in our lists can still be
-            typed in — the lists exist to keep spellings consistent, not to
+            typed in. The lists exist to keep spellings consistent, not to
             refuse places we have not heard of.
           </p>
           <div className="mt-4">
@@ -246,7 +246,7 @@ export function SubmitForm() {
           <h2 className="mt-1 text-[1.05rem] font-semibold">The receipt</h2>
           <p className="mt-1.5 text-[0.8rem] leading-relaxed text-ink-3">
             Proof the promise was <em>made</em>. This is the half officials
-            contest first, so a screenshot matters more than a link — if the post
+            contest first, so a screenshot matters more than a link. If the post
             comes down, a link proves nothing.
           </p>
 
@@ -323,7 +323,7 @@ export function SubmitForm() {
             />
             {files.length > 0 ? (
               <span className="mt-1 block text-[0.72rem] text-ink-3">
-                {files.length} file{files.length === 1 ? '' : 's'} — these become
+                {files.length} file{files.length === 1 ? '' : 's'}. These become
                 the permanent record.
               </span>
             ) : (
@@ -334,7 +334,7 @@ export function SubmitForm() {
                   color: 'var(--band-urgent-ink)',
                 }}
               >
-                Nothing attached. A link alone is fragile — if the post is
+                Nothing attached. A link alone is fragile. If the post is
                 deleted, this entry can no longer show what was promised.
               </span>
             )}
@@ -393,7 +393,7 @@ export function SubmitForm() {
             <p className="mt-4 rounded-lg border border-dashed bg-surface-2 px-4 py-6 text-center text-[0.83rem] text-ink-3">
               No sentence in this post reads as a commitment. Look for phrasing
               like &ldquo;will be&rdquo;, &ldquo;within&rdquo;, &ldquo;assured&rdquo;
-              — or add the promise by hand once you have the wording.
+              Or add the promise by hand once you have the wording.
             </p>
           )}
 
@@ -569,7 +569,7 @@ function DraftRow({
               color: 'var(--band-undated-ink)',
             }}
           >
-            no deadline in the text — will be logged as undated
+            no deadline in the text, will be logged as undated
           </span>
         )}
 

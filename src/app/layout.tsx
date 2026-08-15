@@ -14,7 +14,7 @@ const display = Instrument_Serif({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Vaada — a public register of government promises',
+    default: 'Vaada: a public register of government promises',
     template: '%s · Vaada',
   },
   description:
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     'public deadlines',
   ],
   openGraph: {
-    title: 'Vaada — a public register of government promises',
+    title: 'Vaada: a public register of government promises',
     description:
       'Promises made in public, deadlines running down, evidence from the ground.',
     type: 'website',

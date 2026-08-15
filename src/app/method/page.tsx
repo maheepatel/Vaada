@@ -26,12 +26,12 @@ export default function MethodPage() {
     <div className="mx-auto max-w-[820px] px-4 py-10 sm:px-6">
       <header>
         <p className="eyebrow">Method</p>
-        <h1 className="display mt-2 text-[2.3rem] leading-tight sm:text-[2.9rem]">
+        <h1 className="h-page display mt-2">
           How a tile gets its colour
         </h1>
         <p className="mt-3 text-[0.98rem] leading-relaxed text-ink-2">
           This register is only useful if it is boring and checkable. Everything
-          below is the whole rule set — there is nothing else behind it.
+          below is the whole rule set. There is nothing else behind it.
         </p>
       </header>
 
@@ -40,7 +40,7 @@ export default function MethodPage() {
         <p className="text-[0.92rem] leading-relaxed text-ink-2">
           One row is created when a person with authority states in public that a
           specific thing will be done in a specific place. Aspirations do not
-          qualify — &ldquo;we will improve schools&rdquo; is not trackable, &ldquo;seven
+          qualify. &ldquo;We will improve schools&rdquo; is not trackable; &ldquo;seven
           rooms in three months&rdquo; is. Each row records the wording used, so
           anybody can check the entry against the source without taking our word
           for it.
@@ -112,7 +112,7 @@ export default function MethodPage() {
             A red tile means: <strong>the deadline passed and no verified evidence
             of completion exists on this register.</strong> It is a statement about
             what can be shown, not an allegation that any individual did anything
-            wrong. If the work was done, one photograph closes it — and that is the
+            wrong. If the work was done, one photograph closes it, and that is the
             fastest way to turn a tile green.
           </p>
         </Card>
@@ -158,7 +158,7 @@ export default function MethodPage() {
               />
               <span>
                 <strong className="font-semibold">{BAND_STYLE[b].label}</strong>
-                <span className="text-ink-2"> — {BAND_STYLE[b].meaning}</span>
+                <span className="text-ink-2">: {BAND_STYLE[b].meaning}</span>
               </span>
             </li>
           ))}

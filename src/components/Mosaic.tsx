@@ -45,6 +45,15 @@ export function Mosaic({
         // title alone is the useful thing.
         const showSub = !!item.sublabel && area >= minLabelArea * 3.2;
 
+        // Font size scales with the tile, but only down to a readable floor.
+        // Once a small tile hits that floor the text stops shrinking, so the
+        // line count has to come down instead or the last line is sliced in
+        // half. On a 375px phone the whole mosaic is small enough that the
+        // floor is doing the work, which is why these thresholds are set well
+        // above where the maths alone would put them: a title that ends in a
+        // clean ellipsis reads better than one cut through the middle.
+        const maxLines = area >= 500 ? 4 : area >= 260 ? 3 : 2;
+
         const inner = (
           <>
             {showLabel && (
@@ -52,7 +61,10 @@ export function Mosaic({
                 <span
                   className="tile-label clamp font-semibold tracking-[-0.005em]"
                   style={
-                    { color: style.on, '--lines': showSub ? 3 : 4 } as React.CSSProperties
+                    {
+                      color: style.on,
+                      '--lines': showSub ? Math.max(1, maxLines - 1) : maxLines,
+                    } as React.CSSProperties
                   }
                 >
                   {item.label}
@@ -82,7 +94,7 @@ export function Mosaic({
             height: `${h}%`,
             background: style.fill,
           } as const,
-          title: `${item.label}${item.sublabel ? ` — ${item.sublabel}` : ''} · ${style.label}`,
+          title: `${item.label}${item.sublabel ? ` · ${item.sublabel}` : ''} · ${style.label}`,
         };
 
         return item.href ? (

@@ -70,7 +70,7 @@ export const SOURCES: IngestSource[] = [
   // ---- Publisher feeds: fetchable, can yield dated draft rows ----
   {
     id: 'ie-india',
-    label: 'The Indian Express — India',
+    label: 'The Indian Express, India',
     url: 'https://indianexpress.com/section/india/feed/',
     kind: 'rss',
     mustMatch:
@@ -81,7 +81,7 @@ export const SOURCES: IngestSource[] = [
   },
   {
     id: 'ht-india',
-    label: 'Hindustan Times — India',
+    label: 'Hindustan Times, India',
     url: 'https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml',
     kind: 'rss',
     mustMatch:
@@ -92,7 +92,7 @@ export const SOURCES: IngestSource[] = [
   },
   {
     id: 'thehindu-national',
-    label: 'The Hindu — National',
+    label: 'The Hindu, National',
     url: 'https://www.thehindu.com/news/national/feeder/default.rss',
     kind: 'rss',
     mustMatch:
@@ -103,7 +103,7 @@ export const SOURCES: IngestSource[] = [
   },
   {
     id: 'toi-india',
-    label: 'Times of India — India',
+    label: 'Times of India, India',
     url: 'https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms',
     kind: 'rss',
     mustMatch:
@@ -116,7 +116,7 @@ export const SOURCES: IngestSource[] = [
   // ---- Discovery feeds: leads only ----
   {
     id: 'gn-school-promise',
-    label: 'Discovery — school infrastructure commitments',
+    label: 'Discovery: school infrastructure commitments',
     url: 'https://news.google.com/rss/search?q=school+students+protest+%22within%22+OR+%22deadline%22+OR+%22assured%22+India&hl=en-IN&gl=IN&ceid=IN:en',
     kind: 'rss',
     mustMatch: /school|classroom|teacher|student|college|vidyalaya/i,
@@ -126,7 +126,7 @@ export const SOURCES: IngestSource[] = [
   },
   {
     id: 'gn-official-assurance',
-    label: 'Discovery — official assurances after protests',
+    label: 'Discovery: official assurances after protests',
     url: 'https://news.google.com/rss/search?q=%22officials+assured%22+OR+%22demands+accepted%22+protest+India&hl=en-IN&gl=IN&ceid=IN:en',
     kind: 'rss',
     mustMatch: /assur|accept|agree|promis|undertak/i,
@@ -136,7 +136,7 @@ export const SOURCES: IngestSource[] = [
   },
   {
     id: 'gn-dm-deadline',
-    label: 'Discovery — district administration deadlines',
+    label: 'Discovery: district administration deadlines',
     url: 'https://news.google.com/rss/search?q=%22district+magistrate%22+OR+%22collector%22+deadline+repair+India&hl=en-IN&gl=IN&ceid=IN:en',
     kind: 'rss',
     mustMatch: /magistrate|collector|sdm|deo|panchayat|municipal/i,
@@ -146,7 +146,7 @@ export const SOURCES: IngestSource[] = [
   },
   {
     id: 'gn-water-sanitation',
-    label: 'Discovery — water and sanitation commitments',
+    label: 'Discovery: water and sanitation commitments',
     url: 'https://news.google.com/rss/search?q=village+water+OR+toilet+OR+handpump+%22will+be%22+deadline+India&hl=en-IN&gl=IN&ceid=IN:en',
     kind: 'rss',
     mustMatch: /water|toilet|sanitation|handpump|drainage/i,
@@ -157,7 +157,7 @@ export const SOURCES: IngestSource[] = [
 
   {
     id: 'x-cjp',
-    label: 'X — protest accounts',
+    label: 'X protest accounts',
     url: 'https://api.x.com/2/tweets/search/recent',
     kind: 'x_api',
     mustMatch: /./,

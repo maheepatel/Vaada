@@ -1,15 +1,15 @@
 import Link from 'next/link';
-import { NavLinks } from './NavLinks';
+import { NavLinks, NavStrip } from './NavLinks';
 
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b bg-[color-mix(in_srgb,var(--paper)_88%,transparent)] backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-6 px-4 sm:px-6">
-        <Link href="/" className="group flex items-center gap-2.5 shrink-0">
+      <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-4 px-4 sm:px-6">
+        <Link href="/" className="group flex shrink-0 items-center gap-2.5">
           <Mark />
           <span className="flex items-baseline gap-1.5">
             <span className="display text-[1.35rem] leading-none tracking-tight">Vaada</span>
-            <span className="hidden text-[0.65rem] font-medium uppercase tracking-[0.12em] text-ink-3 sm:inline">
+            <span className="hidden text-[0.65rem] font-medium uppercase tracking-[0.12em] text-ink-3 xl:inline">
               promise register
             </span>
           </span>
@@ -17,13 +17,25 @@ export function SiteHeader() {
 
         <NavLinks />
 
-        <Link
-          href="/submit"
-          className="ml-auto shrink-0 rounded-full bg-ink px-3.5 py-1.5 text-[0.8rem] font-semibold text-paper transition-opacity hover:opacity-85"
-        >
-          Log a promise
-        </Link>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <Link
+            href="/scoreboard"
+            className="rounded-full border px-3 py-1.5 text-[0.78rem] font-semibold text-ink-2 transition-colors hover:border-line-strong hover:text-ink sm:px-3.5"
+          >
+            <span className="hidden sm:inline">State &amp; district rankings</span>
+            <span className="sm:hidden">Rankings</span>
+          </Link>
+          <Link
+            href="/submit"
+            className="rounded-full bg-ink px-3 py-1.5 text-[0.78rem] font-semibold text-paper transition-opacity hover:opacity-85 sm:px-3.5"
+          >
+            <span className="hidden sm:inline">Log a promise</span>
+            <span className="sm:hidden">Log</span>
+          </Link>
+        </div>
       </div>
+
+      <NavStrip />
     </header>
   );
 }

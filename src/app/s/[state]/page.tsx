@@ -25,7 +25,7 @@ export async function generateMetadata({
   const match = commitments.find((c) => c.stateSlug === state);
   if (!match) return { title: 'State not found' };
   return {
-    title: `${match.state} — promises and deadlines`,
+    title: match.state,
     description: `Every public commitment logged in ${match.state}, by district, with the deadline each official agreed to.`,
   };
 }
@@ -53,14 +53,14 @@ export default async function StatePage({ params }: PageProps<'/s/[state]'>) {
 
       <header className="max-w-4xl">
         <p className="eyebrow">State register</p>
-        <h1 className="display mt-2 text-[2.1rem] leading-tight sm:text-[2.7rem]">
+        <h1 className="h-page display mt-2">
           {state.name}
         </h1>
         <p className="mt-2 text-[0.92rem] leading-snug text-ink-2">
           {state.live} promises across {state.districts.length} district
           {state.districts.length === 1 ? '' : 's'}
           {affected > 0 ? `, affecting about ${formatCount(affected)} people` : ''}. One
-          box per district — click into it for the full record.
+          box per district. Click into it for the full record.
         </p>
       </header>
 
@@ -82,7 +82,7 @@ export default async function StatePage({ params }: PageProps<'/s/[state]'>) {
               value:
                 score.kept + score.broken + score.disputed > 0
                   ? percent(score.keptRate)
-                  : '—',
+                  : 'n/a',
               label: 'kept rate',
             },
           ]}
@@ -105,7 +105,7 @@ export default async function StatePage({ params }: PageProps<'/s/[state]'>) {
           eyebrow="Full list"
           title={`Every promise in ${state.name}`}
         >
-          Sorted by urgency — whatever is closest to breaking sits at the top.
+          Sorted by urgency. Whatever is closest to breaking sits at the top.
         </SectionHeading>
         <ul className="space-y-2.5">
           {state.commitments.map((c) => (

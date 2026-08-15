@@ -64,7 +64,7 @@ export interface Composed {
   body: string;
 }
 
-const DIVIDER = '\n' + '—'.repeat(58) + '\n';
+const DIVIDER = '\n' + '='.repeat(58) + '\n';
 
 /**
  * Notice to the official.
@@ -84,7 +84,7 @@ export function composeAuthorityNotice(
   const overdueBy = c.deadline ? roughDuration(Date.now() - Date.parse(c.deadline)) : 'some time';
   const refuting = proofs.filter((p) => p.direction === 'refutes' && p.verdict !== 'rejected');
 
-  const subject = `Deadline passed: ${c.title} — ${c.locality}`;
+  const subject = `Deadline passed: ${c.title}, ${c.locality}`;
 
   const body = [
     `Dear ${official.name},`,
@@ -124,7 +124,7 @@ export function composeAuthorityNotice(
     `To correct anything in this notice, including these contact details:`,
     `  ${cfg.siteUrl}/complaints/new?commitment=${c.slug}`,
     '',
-    `— ${cfg.fromName}`,
+    `${cfg.fromName}`,
     cfg.replyTo ? `  Replies: ${cfg.replyTo}` : '',
   ]
     .filter((line) => line !== '')
@@ -151,16 +151,16 @@ export function composeWatcherNotice(
         '',
         `  ${c.title}`,
         `  ${c.locality}${c.district ? `, ${c.district}` : ''}, ${c.state}`,
-        `  Due ${formatDate(c.deadline)} — ${left} left`,
+        `  Due ${formatDate(c.deadline)}, ${left} left`,
         official ? `  Answerable: ${official.name}, ${official.role}` : '',
         '',
         `There is still time for this one to be kept. If you can get to the site,`,
-        `a photograph taken now is the most useful thing on the record — whichever`,
+        `a photograph taken now is the most useful thing on the record, whichever`,
         `way it goes.`,
         '',
         `  ${url}`,
         '',
-        `— ${cfg.fromName}`,
+        `${cfg.fromName}`,
       ]
         .filter(Boolean)
         .join('\n'),
@@ -175,7 +175,7 @@ export function composeWatcherNotice(
       '',
       `  ${c.title}`,
       `  ${c.locality}${c.district ? `, ${c.district}` : ''}, ${c.state}`,
-      `  Promised ${formatDate(c.promisedOn)}${c.deadlineLabel ? ` — "${c.deadlineLabel}"` : ''}`,
+      `  Promised ${formatDate(c.promisedOn)}${c.deadlineLabel ? `, "${c.deadlineLabel}"` : ''}`,
       `  Was due ${formatDate(c.deadline)}`,
       '',
       official
@@ -197,7 +197,7 @@ export function composeWatcherNotice(
       '',
       `  ${url}`,
       '',
-      `— ${cfg.fromName}`,
+      `${cfg.fromName}`,
       `  You are getting this because you logged or followed this promise.`,
     ]
       .filter(Boolean)

@@ -151,7 +151,7 @@ export default async function PromisePage({ params }: PageProps<'/p/[slug]'>) {
             <div>
               <p className="eyebrow">They said</p>
               <p className="mt-1.5 text-[0.95rem] font-semibold">
-                {c.deadlineLabel ? `“${c.deadlineLabel}”` : '— nothing —'}
+                {c.deadlineLabel ? `“${c.deadlineLabel}”` : 'nothing'}
               </p>
             </div>
 
@@ -262,7 +262,7 @@ export default async function PromisePage({ params }: PageProps<'/p/[slug]'>) {
               title="Evidence"
             >
               Anything a resident, volunteer or reporter sent in. Nothing is taken
-              on trust — every item carries who sent it and whether it has been
+              on trust. Every item carries who sent it and whether it has been
               checked.
             </SectionHeading>
 
@@ -322,7 +322,7 @@ export default async function PromisePage({ params }: PageProps<'/p/[slug]'>) {
         </div>
 
         {/* ===== Right: who is answerable ===== */}
-        <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+        <aside className="space-y-4 lg:sticky lg:top-[calc(var(--header-h)+1rem)] lg:self-start">
           <AccountablePanel commitment={c} emphasis />
 
           <WatchForm commitmentId={c.id} deadline={c.deadline} />
@@ -369,7 +369,7 @@ export default async function PromisePage({ params }: PageProps<'/p/[slug]'>) {
 
           <p className="px-1 text-[0.7rem] leading-relaxed text-ink-3">
             Last updated {formatDateTime(c.updatedAt)}. A red state on this page
-            means the deadline passed without verified proof of completion — it is a
+            means the deadline passed without verified proof of completion. It is a
             statement about the available evidence.
           </p>
         </aside>
