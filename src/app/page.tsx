@@ -2,10 +2,10 @@ import Link from 'next/link';
 import { getRegister, buildCounts } from '@/lib/data';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { rollUp, toLive, scorecard, byUrgency, BAND_STYLE } from '@/lib/status';
-import { formatCount, percent } from '@/lib/format';
+import { formatCount } from '@/lib/format';
 import { Mosaic, type MosaicItem } from '@/components/Mosaic';
 import { CommitmentRow } from '@/components/CommitmentRow';
-import { KeyNumbers, PlainReading } from '@/components/KeyNumbers';
+import { StatRibbon, PlainReading } from '@/components/KeyNumbers';
 import { Legend, SectionHeading, Card } from '@/components/ui';
 import type { StateRollup } from '@/lib/types';
 
@@ -36,72 +36,59 @@ export default async function HomePage() {
     <>
       {!isSupabaseConfigured() && <SeedBanner />}
 
-      {/* ===== Hero + numbers + map, all above the fold ===== */}
-      <section className="mx-auto max-w-[1400px] px-4 pt-8 sm:px-6 sm:pt-10">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-end">
-          <div>
-            <p className="eyebrow">Public promise register · India</p>
-            <h1 className="display mt-2.5 text-[2.1rem] leading-[1.05] tracking-tight sm:text-[2.9rem]">
-              They promised it in front of everyone.
-              <br />
-              <span className="text-ink-3">Here is the clock.</span>
-            </h1>
-            <p className="mt-3 max-w-2xl text-[0.95rem] leading-relaxed text-ink-2">
-              Every promise here has a fuse on it, lit by the official who chose
-              the date. We just publish the countdown. Green means time left; red
-              means it went off and nobody could show the work was done.
-            </p>
-          </div>
+      {/* ===== Title, then the map, then the numbers ===== */}
+      <section className="mx-auto max-w-[1400px] px-4 pt-6 sm:px-6 sm:pt-8">
+        <p className="eyebrow">Public promise register · India</p>
+        <h1 className="display mt-2 max-w-4xl text-[2rem] leading-[1.04] tracking-tight sm:text-[2.75rem]">
+          They gave their word.
+          <br />
+          <span className="text-ink-3">We gave it a countdown.</span>
+        </h1>
 
-          <div className="lg:pb-1">
-            <PlainReading
-              total={score.total}
-              kept={score.kept}
-              broken={score.broken}
-              undated={score.undated + score.unanswered}
-              dueSoon={score.dueIn48h}
-            />
-          </div>
+        {/* One line only. Anything longer here pushes the map down, and the map
+            is the thing people came for. */}
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+          <p className="max-w-3xl text-[0.92rem] leading-snug text-ink-2">
+            Every tile below is one promise with a fuse on it, lit by the official
+            who chose the date. Green means time left. Red means it went off and
+            nobody could show the work was done.
+          </p>
+          <Link
+            href="/scoreboard"
+            className="shrink-0 text-[0.78rem] font-semibold text-[var(--brand-ink)] hover:underline"
+          >
+            State &amp; district rankings →
+          </Link>
         </div>
 
-        <div className="mt-6">
-          <KeyNumbers
+        {/* A single thin line of counts, so the headline numbers and the map are
+            both on screen at once without the numbers displacing the map. */}
+        <div className="mt-3 border-y py-2">
+          <StatRibbon
             items={[
-              {
-                value: score.total,
-                label: 'promises tracked',
-                hint: `across ${states.length} states`,
-                href: '/register',
-              },
+              { value: score.total, label: 'tracked', href: '/register' },
               {
                 value: score.kept,
-                label: 'kept & verified',
+                label: 'kept',
                 tone: BAND_STYLE.kept.softOn,
-                hint:
-                  score.kept + score.broken + score.disputed > 0
-                    ? `${percent(score.keptRate)} of decided`
-                    : 'nothing decided yet',
                 href: '/register?band=kept',
               },
               {
                 value: score.broken,
-                label: 'deadline missed',
+                label: 'missed',
                 tone: BAND_STYLE.broken.softOn,
-                hint: 'no proof by the date',
                 href: '/register?band=broken',
               },
               {
                 value: score.undated + score.unanswered,
                 label: 'no date given',
                 tone: BAND_STYLE.undated.softOn,
-                hint: 'can never be broken',
                 href: '/register?band=undated',
               },
               {
                 value: score.dueIn48h,
-                label: 'due in 48 hours',
+                label: 'due in 48h',
                 tone: BAND_STYLE.urgent.softOn,
-                hint: 'go and look now',
                 href: '/deadlines',
               },
               {
@@ -115,28 +102,28 @@ export default async function HomePage() {
           />
         </div>
 
-        {/* The map itself — directly under the numbers, no scrolling. */}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
-          <Legend compact />
-          <Link
-            href="/scoreboard"
-            className="text-[0.78rem] font-semibold text-[var(--brand-ink)] hover:underline"
-          >
-            State &amp; district rankings →
-          </Link>
-        </div>
-
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {/* The map, immediately. */}
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {states.map((s) => (
             <StateBox key={s.slug} state={s} />
           ))}
         </div>
 
-        <p className="mt-3 text-[0.75rem] text-ink-3">
-          One box per state, one tile per promise. Tiles are sized by how many
-          people the promise affects. Click a tile to open it, or a state name for
-          its districts.
-        </p>
+        <div className="mt-3">
+          <Legend compact />
+        </div>
+
+        {/* The same figures in a sentence, for readers who take meaning from
+            prose faster than from a row of digits. */}
+        <div className="mt-4 max-w-4xl">
+          <PlainReading
+            total={score.total}
+            kept={score.kept}
+            broken={score.broken}
+            undated={score.undated + score.unanswered}
+            dueSoon={score.dueIn48h}
+          />
+        </div>
       </section>
 
       {/* ===== Everything below the map ===== */}

@@ -70,6 +70,50 @@ export function KeyNumbers({ items }: { items: KeyNumber[] }) {
 }
 
 /**
+ * The thinnest possible version of the headline figures — a single ~40px line.
+ *
+ * It exists because of a genuine conflict: the map has to sit directly under
+ * the title, and the map is two rows tall, which puts any normal stat block
+ * below the fold. This ribbon fits above the map without displacing it, so a
+ * reader sees both the shape of the country and the raw counts at once.
+ */
+export function StatRibbon({ items }: { items: KeyNumber[] }) {
+  return (
+    <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+      <ul className="flex min-w-max items-center gap-x-4 gap-y-1 sm:flex-wrap sm:gap-x-5">
+        {items.map((item) => {
+          const body = (
+            <>
+              <span
+                className="tnum text-[1.05rem] font-bold leading-none"
+                style={item.tone ? { color: item.tone } : undefined}
+              >
+                {item.value}
+              </span>
+              <span className="text-[0.78rem] leading-none text-ink-2">{item.label}</span>
+            </>
+          );
+          return (
+            <li key={item.label} className="flex items-baseline gap-1.5">
+              {item.href ? (
+                <Link
+                  href={item.href}
+                  className="flex items-baseline gap-1.5 rounded hover:underline"
+                >
+                  {body}
+                </Link>
+              ) : (
+                body
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/**
  * A one-line plain-English reading of the register, sitting directly under the
  * numbers. The point of the site is that somebody grasps what is and is not
  * done in a couple of seconds, and a sentence does that faster than a chart.
