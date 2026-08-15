@@ -1,26 +1,302 @@
 @import "tailwindcss";
 
+/*
+  Vaada design tokens.
+
+  Two colour systems live here and they must not bleed into each other:
+
+  1. The SURFACE system — warm paper, near-black ink, one cobalt accent.
+     Deliberately low-chroma so that…
+  2. …the BAND system — the green->red urgency ramp — is the only saturated
+     thing on the page. When a wall of sixty cells is the main interface, any
+     decorative colour elsewhere competes with the signal and the signal loses.
+
+  Band hues are slightly desaturated versions of the obvious traffic-light
+  colours. Pure #FF0000 next to pure #00FF00 vibrates; these sit together.
+*/
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  --paper: #faf8f3;
+  --surface: #ffffff;
+  --surface-2: #f4f1e9;
+  --surface-3: #ebe7dc;
+
+  --ink: #16150f;
+  --ink-2: #4d493d;
+  --ink-3: #857f6d;
+  --ink-4: #a9a392;
+
+  --line: #e5e0d3;
+  --line-strong: #d3ccb9;
+
+  --brand: #2f4bff;
+  --brand-ink: #1b2fb5;
+  --brand-soft: #e8ebff;
+
+  --band-kept: #12805c;
+  --band-kept-soft: #dcf1e7;
+  --band-kept-ink: #0a5a41;
+
+  --band-fresh: #35be7e;
+  --band-fresh-soft: #e2f6ed;
+  --band-fresh-ink: #10684a;
+
+  --band-soon: #efc03b;
+  --band-soon-soft: #fbf2d5;
+  --band-soon-ink: #7a5a05;
+
+  --band-urgent: #f2843b;
+  --band-urgent-soft: #fdead9;
+  --band-urgent-ink: #8a400b;
+
+  --band-critical: #e8503c;
+  --band-critical-soft: #fde6e1;
+  --band-critical-ink: #9a2617;
+
+  --band-broken: #c7302a;
+  --band-broken-soft: #fbe0dd;
+  --band-broken-ink: #8c1c18;
+
+  --band-disputed: #7b5ce0;
+  --band-disputed-soft: #ede8fd;
+  --band-disputed-ink: #4a2fa8;
+
+  /* Sits in the green family on purpose: an undated promise has not failed,
+     it just cannot be measured. Muted so it never competes with `fresh`. */
+  --band-undated: #93b98c;
+  --band-undated-soft: #e9f1e6;
+  --band-undated-ink: #43613c;
+
+  /* Deliberately the only truly neutral fill on the board. */
+  --band-unanswered: #8c8577;
+  --band-unanswered-soft: #f0ede5;
+  --band-unanswered-ink: #4e4940;
+
+  --shadow-sm: 0 1px 2px rgb(22 21 15 / 0.05);
+  --shadow-md: 0 2px 4px rgb(22 21 15 / 0.04), 0 8px 24px rgb(22 21 15 / 0.06);
+  --shadow-lg: 0 4px 8px rgb(22 21 15 / 0.05), 0 20px 48px rgb(22 21 15 / 0.1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/*
+  Dark is a genuine warm dark, not an inverted greyscale. The band fills are
+  lifted a little because a saturated mid-tone that reads as urgent on paper
+  reads as muddy on near-black.
+*/
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --paper: #12110e;
+    --surface: #1a1815;
+    --surface-2: #211f1a;
+    --surface-3: #2b2822;
+
+    --ink: #f5f2ea;
+    --ink-2: #c4bdac;
+    --ink-3: #8e8878;
+    --ink-4: #6b6558;
+
+    --line: #2e2b24;
+    --line-strong: #423e34;
+
+    --brand: #6d80ff;
+    --brand-ink: #a8b4ff;
+    --brand-soft: #1e2350;
+
+    --band-kept: #1e9d73;
+    --band-kept-soft: #0e2b21;
+    --band-kept-ink: #6fd9b2;
+
+    --band-fresh: #3ecd8a;
+    --band-fresh-soft: #0f2b1f;
+    --band-fresh-ink: #77e2b0;
+
+    --band-soon: #f0c650;
+    --band-soon-soft: #2e2510;
+    --band-soon-ink: #f4d688;
+
+    --band-urgent: #f5904e;
+    --band-urgent-soft: #331d0e;
+    --band-urgent-ink: #f9b988;
+
+    --band-critical: #f05f4a;
+    --band-critical-soft: #341612;
+    --band-critical-ink: #f89b8b;
+
+    --band-broken: #dc4139;
+    --band-broken-soft: #35120f;
+    --band-broken-ink: #f28d85;
+
+    --band-disputed: #9078ea;
+    --band-disputed-soft: #221a3d;
+    --band-disputed-ink: #bbaaf5;
+
+    --band-undated: #7ba172;
+    --band-undated-soft: #182515;
+    --band-undated-ink: #a9cba0;
+
+    --band-unanswered: #7d7668;
+    --band-unanswered-soft: #221f1a;
+    --band-unanswered-ink: #b0a998;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 2px 4px rgb(0 0 0 / 0.3), 0 8px 24px rgb(0 0 0 / 0.45);
+    --shadow-lg: 0 4px 8px rgb(0 0 0 / 0.35), 0 20px 48px rgb(0 0 0 / 0.55);
   }
 }
 
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-4: var(--ink-4);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-soft: var(--brand-soft);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: var(--font-display), Georgia, serif;
+}
+
+* {
+  border-color: var(--line);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Numbers in tables, countdowns and stat tiles must not jitter as they tick. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+
+/* Section eyebrows — small, wide, muted. Used above every major block. */
+.eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/*
+  Hairline used to separate mosaic tiles. A real gap would let the paper
+  through and break the "one continuous surface" reading of the reference
+  layout, so tiles are inset by a hair instead.
+*/
+.mosaic-tile {
+  position: absolute;
+  overflow: hidden;
+  border-radius: 3px;
+  outline: 1.5px solid var(--paper);
+  outline-offset: -1.5px;
+  transition:
+    filter 140ms ease,
+    transform 140ms ease;
+}
+
+.mosaic-tile:hover,
+.mosaic-tile:focus-visible {
+  filter: brightness(1.07) saturate(1.05);
+  z-index: 5;
+}
+
+.mosaic-tile:focus-visible {
+  outline: 2.5px solid var(--ink);
+  outline-offset: -2.5px;
+}
+
+/* Diagonal hatch marks a promise that was kept, so `kept` never reads as
+   "just another green cell" on a wall of greens. */
+.hatch-kept {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgb(255 255 255 / 0.16) 0 4px,
+    transparent 4px 9px
+  );
+}
+
+/*
+  Nobody in authority has answered this one. Dotted rather than solid, because
+  `unanswered` and `undated` are neighbouring neutrals and hue alone was not
+  separating them at tile size — texture does it instantly, and it survives
+  greyscale printing and colour-blindness both.
+*/
+.hatch-unanswered {
+  background-image: radial-gradient(
+    rgb(255 255 255 / 0.22) 1px,
+    transparent 1.2px
+  );
+  background-size: 7px 7px;
+}
+
+/* The bar that runs along the bottom edge of a tile showing verified progress. */
+.tile-progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgb(255 255 255 / 0.75);
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--band-broken) 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--band-broken) 0%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--band-broken) 0%, transparent);
+  }
+}
+
+/* Reserved for deadlines inside the final hours. Used sparingly — if
+   everything pulses, nothing does. */
+.ticking {
+  animation: pulse-ring 2.4s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticking {
+    animation: none;
+  }
+  .mosaic-tile {
+    transition: none;
+  }
+}
+
+::selection {
+  background: var(--brand);
+  color: #fff;
+}
+
+/* Thin, unobtrusive scrollbars for the long registers. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
 }
