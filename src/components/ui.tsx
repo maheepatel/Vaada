@@ -144,7 +144,14 @@ export function SectionHeading({
   );
 }
 
-export function Legend() {
+/**
+ * The colour key.
+ *
+ * `compact` is used above the fold on the home page, where the legend competes
+ * for vertical space with the map it explains — tighter gaps and smaller swatches
+ * keep it to a single line on a laptop and two on a phone.
+ */
+export function Legend({ compact = false }: { compact?: boolean }) {
   const order: UrgencyBand[] = [
     'kept',
     'fresh',
@@ -157,17 +164,21 @@ export function Legend() {
     'unanswered',
   ];
   return (
-    <ul className="flex flex-wrap gap-x-4 gap-y-2">
+    <ul className={`flex flex-wrap ${compact ? 'gap-x-3.5 gap-y-1.5' : 'gap-x-4 gap-y-2'}`}>
       {order.map((b) => {
         const s = BAND_STYLE[b];
         return (
           <li key={b} className="flex items-center gap-1.5" title={s.meaning}>
             <span
-              className={`size-2.5 rounded-[3px] ${bandTexture(b)}`}
+              className={`shrink-0 rounded-[2px] ${compact ? 'size-2' : 'size-2.5'} ${bandTexture(b)}`}
               style={{ background: s.fill }}
               aria-hidden
             />
-            <span className="text-[0.72rem] font-medium text-ink-2">{s.label}</span>
+            <span
+              className={`font-medium text-ink-2 ${compact ? 'text-[0.68rem]' : 'text-[0.72rem]'}`}
+            >
+              {s.label}
+            </span>
           </li>
         );
       })}

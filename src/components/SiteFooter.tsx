@@ -21,8 +21,10 @@ export function SiteFooter() {
           <p className="eyebrow">Browse</p>
           <ul className="mt-3 space-y-1.5 text-sm">
             <li><Link className="text-ink-2 hover:text-ink" href="/">Map of promises</Link></li>
+            <li><Link className="text-ink-2 hover:text-ink" href="/scoreboard">Scoreboard &amp; rankings</Link></li>
             <li><Link className="text-ink-2 hover:text-ink" href="/register">Full register</Link></li>
             <li><Link className="text-ink-2 hover:text-ink" href="/deadlines">Deadline board</Link></li>
+            <li><Link className="text-ink-2 hover:text-ink" href="/authority">Who is answerable</Link></li>
             <li><Link className="text-ink-2 hover:text-ink" href="/complaints">Complaints</Link></li>
           </ul>
         </div>

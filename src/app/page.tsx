@@ -1,11 +1,12 @@
 import Link from 'next/link';
-import { getRegister, countBy } from '@/lib/data';
+import { getRegister, buildCounts } from '@/lib/data';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { rollUp, toLive, scorecard, byUrgency, BAND_STYLE } from '@/lib/status';
 import { formatCount, percent } from '@/lib/format';
 import { Mosaic, type MosaicItem } from '@/components/Mosaic';
 import { CommitmentRow } from '@/components/CommitmentRow';
-import { Legend, SectionHeading, StatTile, Card } from '@/components/ui';
+import { KeyNumbers, PlainReading } from '@/components/KeyNumbers';
+import { Legend, SectionHeading, Card } from '@/components/ui';
 import type { StateRollup } from '@/lib/types';
 
 // The whole page is a function of the clock, so it cannot be statically cached
@@ -15,23 +16,10 @@ export const revalidate = 60;
 
 export default async function HomePage() {
   const now = Date.now();
-  const { commitments, proofs, complaints } = await getRegister();
+  const { commitments, proofs, complaints, receipts } = await getRegister();
+  const counts = buildCounts(proofs, complaints, receipts);
 
-  const proofCounts = countBy(proofs, (p) => p.commitmentId);
-  const complaintCounts = countBy(
-    complaints.filter((c) => c.commitmentId),
-    (c) => c.commitmentId as string,
-  );
-
-  const live = commitments
-    .map((c) =>
-      toLive(c, now, {
-        proofs: proofCounts.get(c.id),
-        complaints: complaintCounts.get(c.id),
-      }),
-    )
-    .sort(byUrgency);
-
+  const live = commitments.map((c) => toLive(c, now, counts(c.id))).sort(byUrgency);
   const states = rollUp(commitments, now);
   const score = scorecard(live);
 
@@ -42,100 +30,117 @@ export default async function HomePage() {
 
   const broken = live.filter((c) => c.band === 'broken').slice(0, 4);
   const undated = live.filter((c) => c.band === 'undated');
+  const unanswered = live.filter((c) => c.band === 'unanswered');
 
   return (
     <>
       {!isSupabaseConfigured() && <SeedBanner />}
 
-      <section className="mx-auto max-w-[1400px] px-4 pt-10 sm:px-6 sm:pt-14">
-        <div className="max-w-3xl">
-          <p className="eyebrow">Public promise register · India</p>
-          <h1 className="display mt-3 text-[2.4rem] leading-[1.06] tracking-tight sm:text-[3.4rem]">
-            They promised it in front of everyone.
-            <br />
-            <span className="text-ink-3">Here is the clock.</span>
-          </h1>
-          <p className="mt-5 max-w-2xl text-[0.98rem] leading-relaxed text-ink-2 sm:text-[1.05rem]">
-            Every tile below is one thing a named official agreed to do, in one
-            place, by a date they chose themselves. Tiles start green and turn red
-            as the window they promised runs out. When one goes red, the deadline
-            passed with nobody able to show that the work was done.
-          </p>
+      {/* ===== Hero + numbers + map, all above the fold ===== */}
+      <section className="mx-auto max-w-[1400px] px-4 pt-8 sm:px-6 sm:pt-10">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-end">
+          <div>
+            <p className="eyebrow">Public promise register · India</p>
+            <h1 className="display mt-2.5 text-[2.1rem] leading-[1.05] tracking-tight sm:text-[2.9rem]">
+              They promised it in front of everyone.
+              <br />
+              <span className="text-ink-3">Here is the clock.</span>
+            </h1>
+            <p className="mt-3 max-w-2xl text-[0.95rem] leading-relaxed text-ink-2">
+              Every promise here has a fuse on it, lit by the official who chose
+              the date. We just publish the countdown. Green means time left; red
+              means it went off and nobody could show the work was done.
+            </p>
+          </div>
 
-          <div className="mt-6 flex flex-wrap gap-2.5">
-            <Link
-              href="/deadlines"
-              className="rounded-full bg-ink px-4 py-2 text-[0.85rem] font-semibold text-paper transition-opacity hover:opacity-85"
-            >
-              What is about to break
-            </Link>
-            <Link
-              href="/submit"
-              className="rounded-full border px-4 py-2 text-[0.85rem] font-semibold text-ink-2 transition-colors hover:border-line-strong hover:text-ink"
-            >
-              Log a promise from a post
-            </Link>
+          <div className="lg:pb-1">
+            <PlainReading
+              total={score.total}
+              kept={score.kept}
+              broken={score.broken}
+              undated={score.undated + score.unanswered}
+              dueSoon={score.dueIn48h}
+            />
           </div>
         </div>
 
-        {/* Scorecard */}
-        <div className="mt-9 grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-5">
-          <StatTile
-            label="Promises tracked"
-            value={score.total}
-            hint={`across ${states.length} states`}
-          />
-          <StatTile
-            label="Kept & verified"
-            value={score.kept}
-            accent={BAND_STYLE.kept.softOn}
-            hint={
-              score.kept + score.broken + score.disputed > 0
-                ? `${percent(score.keptRate)} of decided promises`
-                : 'nothing decided yet'
-            }
-          />
-          <StatTile
-            label="Deadline missed"
-            value={score.broken}
-            accent={BAND_STYLE.broken.softOn}
-            hint="no verified proof by the date"
-          />
-          <StatTile
-            label="No date given"
-            value={score.undated + score.unanswered}
-            accent={BAND_STYLE.undated.softOn}
-            hint="accepted or raised, never dated"
-          />
-          <StatTile
-            label="Due in 48 hours"
-            value={score.dueIn48h}
-            accent={BAND_STYLE.urgent.softOn}
-            hint="go and look now"
+        <div className="mt-6">
+          <KeyNumbers
+            items={[
+              {
+                value: score.total,
+                label: 'promises tracked',
+                hint: `across ${states.length} states`,
+                href: '/register',
+              },
+              {
+                value: score.kept,
+                label: 'kept & verified',
+                tone: BAND_STYLE.kept.softOn,
+                hint:
+                  score.kept + score.broken + score.disputed > 0
+                    ? `${percent(score.keptRate)} of decided`
+                    : 'nothing decided yet',
+                href: '/register?band=kept',
+              },
+              {
+                value: score.broken,
+                label: 'deadline missed',
+                tone: BAND_STYLE.broken.softOn,
+                hint: 'no proof by the date',
+                href: '/register?band=broken',
+              },
+              {
+                value: score.undated + score.unanswered,
+                label: 'no date given',
+                tone: BAND_STYLE.undated.softOn,
+                hint: 'can never be broken',
+                href: '/register?band=undated',
+              },
+              {
+                value: score.dueIn48h,
+                label: 'due in 48 hours',
+                tone: BAND_STYLE.urgent.softOn,
+                hint: 'go and look now',
+                href: '/deadlines',
+              },
+              {
+                value: formatCount(
+                  live.reduce((s, c) => s + (c.beneficiaries ?? 0), 0),
+                ),
+                label: 'people affected',
+                href: '/scoreboard',
+              },
+            ]}
           />
         </div>
-      </section>
 
-      {/* ===== The map ===== */}
-      <section className="mx-auto max-w-[1400px] px-4 pt-14 sm:px-6">
-        <SectionHeading eyebrow="The map" title="Every promise, by where it was made">
-          One box per state. Inside it, one tile per promise, sized by how many
-          people it affects. Click into a state for its districts.
-        </SectionHeading>
-
-        <div className="mb-6 rounded-xl border bg-surface px-4 py-3">
-          <Legend />
+        {/* The map itself — directly under the numbers, no scrolling. */}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+          <Legend compact />
+          <Link
+            href="/scoreboard"
+            className="text-[0.78rem] font-semibold text-[var(--brand-ink)] hover:underline"
+          >
+            State &amp; district rankings →
+          </Link>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {states.map((s) => (
             <StateBox key={s.slug} state={s} />
           ))}
         </div>
+
+        <p className="mt-3 text-[0.75rem] text-ink-3">
+          One box per state, one tile per promise. Tiles are sized by how many
+          people the promise affects. Click a tile to open it, or a state name for
+          its districts.
+        </p>
       </section>
 
-      {/* ===== Burning down ===== */}
-      <section className="mx-auto max-w-[1400px] px-4 pt-16 sm:px-6">
+      {/* ===== Everything below the map ===== */}
+      <section className="mx-auto max-w-[1400px] px-4 pt-14 sm:px-6">
         <div className="grid gap-8 lg:grid-cols-[1.35fr_1fr]">
           <div>
             <SectionHeading
@@ -174,42 +179,69 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ===== Undated ===== */}
-      <section className="mx-auto max-w-[1400px] px-4 pt-16 sm:px-6">
-        <Card className="overflow-hidden">
-          <div className="border-b bg-surface-2 px-5 py-4">
-            <SectionHeading
-              eyebrow="The quiet failure"
-              title={`${undated.length} promises with no date attached`}
-              action={{ href: '/register?band=undated', label: 'See all' }}
-            >
-              A promise without a deadline can never be broken, which is exactly
-              why it gets given. These are logged so that the first ask is always:
-              by when?
-            </SectionHeading>
-          </div>
-          <ul className="divide-y">
-            {undated.slice(0, 5).map((c) => (
-              <li key={c.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3">
-                <Link
-                  href={`/p/${c.slug}`}
-                  className="text-[0.9rem] font-medium text-ink hover:underline"
-                >
-                  {c.title}
-                </Link>
-                <span className="text-[0.78rem] text-ink-3">
-                  {c.locality}
-                  {c.district ? `, ${c.district}` : ''} · {c.state}
-                </span>
-                <span className="ml-auto text-[0.75rem] font-medium text-ink-3">
-                  {c.accountable[0]?.name ?? 'unassigned'}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </Card>
+      {/* ===== The two quiet failure modes ===== */}
+      <section className="mx-auto max-w-[1400px] px-4 pt-14 sm:px-6">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <QuietList
+            eyebrow="The quiet failure"
+            title={`${undated.length} promises with no date attached`}
+            blurb="A promise without a deadline can never be broken, which is exactly why it gets given. The first thing to ask about any of these is: by when?"
+            href="/register?band=undated"
+            items={undated.slice(0, 5)}
+          />
+          <QuietList
+            eyebrow="No reply at all"
+            title={`${unanswered.length} demands nobody has answered`}
+            blurb="Raised in public, in front of witnesses, and met with silence. Silence is a result too, so it gets counted."
+            href="/register?band=unanswered"
+            items={unanswered.slice(0, 5)}
+          />
+        </div>
       </section>
     </>
+  );
+}
+
+function QuietList({
+  eyebrow,
+  title,
+  blurb,
+  href,
+  items,
+}: {
+  eyebrow: string;
+  title: string;
+  blurb: string;
+  href: string;
+  items: { id: string; slug: string; title: string; locality: string; district: string | null; state: string; accountable: { name: string }[] }[];
+}) {
+  return (
+    <Card className="overflow-hidden">
+      <div className="border-b bg-surface-2 px-5 py-4">
+        <SectionHeading eyebrow={eyebrow} title={title} action={{ href, label: 'See all' }}>
+          {blurb}
+        </SectionHeading>
+      </div>
+      <ul className="divide-y">
+        {items.map((c) => (
+          <li key={c.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3">
+            <Link
+              href={`/p/${c.slug}`}
+              className="text-[0.88rem] font-medium text-ink hover:underline"
+            >
+              {c.title}
+            </Link>
+            <span className="text-[0.75rem] text-ink-3">
+              {c.locality}
+              {c.district ? `, ${c.district}` : ''} · {c.state}
+            </span>
+            <span className="ml-auto text-[0.73rem] font-medium text-ink-3">
+              {c.accountable[0]?.name ?? 'nobody named'}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Card>
   );
 }
 
@@ -224,35 +256,32 @@ function StateBox({ state }: { state: StateRollup }) {
     href: `/p/${c.slug}`,
   }));
 
-  const affected = state.commitments.reduce((s, c) => s + (c.beneficiaries ?? 0), 0);
-
   return (
     <Card className="overflow-hidden">
       <Link
         href={`/s/${state.slug}`}
-        className="flex items-start justify-between gap-3 border-b px-4 py-3 transition-colors hover:bg-surface-2"
+        className="flex items-start justify-between gap-2 border-b px-3.5 py-2.5 transition-colors hover:bg-surface-2"
       >
         <div className="min-w-0">
-          <h3 className="text-[1.05rem] font-semibold leading-tight">{state.name}</h3>
-          <p className="mt-0.5 text-[0.75rem] text-ink-3">
+          <h3 className="text-[0.98rem] font-semibold leading-tight">{state.name}</h3>
+          <p className="mt-0.5 text-[0.72rem] text-ink-3">
+            {state.live} promise{state.live === 1 ? '' : 's'} ·{' '}
             {state.districts.length} district
-            {state.districts.length === 1 ? '' : 's'} · {state.live} promise
-            {state.live === 1 ? '' : 's'}
-            {affected > 0 ? ` · ${formatCount(affected)} affected` : ''}
+            {state.districts.length === 1 ? '' : 's'}
           </p>
         </div>
-        <span className="shrink-0 pt-0.5 text-[0.75rem] font-semibold text-ink-3">→</span>
+        <span className="shrink-0 pt-0.5 text-[0.72rem] font-semibold text-ink-3">→</span>
       </Link>
 
-      <div className="aspect-[4/3] p-1.5">
+      <div className="aspect-[5/4] p-1.5">
         <Mosaic items={items} />
       </div>
 
-      <div className="flex items-center gap-3 border-t px-4 py-2.5 text-[0.72rem] font-medium">
+      <div className="flex items-center gap-2.5 border-t px-3.5 py-2 text-[0.7rem] font-medium">
         <span style={{ color: BAND_STYLE.kept.softOn }}>{state.kept} kept</span>
         <span style={{ color: BAND_STYLE.broken.softOn }}>{state.broken} missed</span>
-        <span className="ml-auto text-ink-3">
-          worst: {BAND_STYLE[state.band].label}
+        <span className="ml-auto truncate text-ink-3">
+          {BAND_STYLE[state.band].label}
         </span>
       </div>
     </Card>
@@ -262,12 +291,9 @@ function StateBox({ state }: { state: StateRollup }) {
 function SeedBanner() {
   return (
     <div className="border-b bg-brand-soft">
-      <p className="mx-auto max-w-[1400px] px-4 py-2 text-[0.78rem] text-[var(--brand-ink)] sm:px-6">
-        <strong className="font-semibold">Reading from the founding register.</strong>{' '}
-        Supabase is not configured, so submissions are validated but not stored.
-        Add <code className="font-mono">NEXT_PUBLIC_SUPABASE_URL</code> and{' '}
-        <code className="font-mono">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> to enable
-        writes.
+      <p className="mx-auto max-w-[1400px] truncate px-4 py-1.5 text-[0.73rem] text-[var(--brand-ink)] sm:px-6">
+        <strong className="font-semibold">Founding register</strong> — Supabase not
+        configured, so submissions are validated but not stored.
       </p>
     </div>
   );
