@@ -55,6 +55,60 @@ export interface Official {
   handle?: string;
   /** Department or body they answer for. */
   body?: string;
+  /**
+   * Official contact for breach notices. Left undefined until somebody has
+   * verified it against a government source — a wrong address on an
+   * accountability notice is worse than no address, so this is never guessed.
+   */
+  email?: string;
+  /** Public office address, for a physical notice or an RTI. */
+  office?: string;
+  /** Where the contact details came from. Required if `email` is set. */
+  contactSource?: string;
+}
+
+export type ReceiptKind =
+  /** Screenshot or archive of a post on X, Facebook, Instagram, YouTube. */
+  | 'social_post'
+  /** A signed government order, letter or undertaking on letterhead. */
+  | 'written_order'
+  /** Minutes of a meeting or a signed memorandum of demands. */
+  | 'minutes'
+  /** Video of the official saying it, on camera. */
+  | 'video'
+  /** A news report quoting the commitment. */
+  | 'press_report';
+
+/**
+ * Proof that the promise *was made* — as opposed to `Proof`, which is about
+ * whether it was *kept*.
+ *
+ * This is the half of the record that officials contest first. "I never said
+ * three months" is the standard move, so a screenshot of the signed order or an
+ * archived copy of the post is what makes a row defensible. A link on its own
+ * is fragile: posts get deleted, and then the register is asserting something
+ * it can no longer show.
+ */
+export interface Receipt {
+  id: string;
+  /** Kept alongside the commitment rather than inside it, like `Proof`. */
+  commitmentId: string;
+  kind: ReceiptKind;
+  /** What this document is, in a reader's words. */
+  title: string;
+  description?: string;
+  /** Archived copies — screenshots, scans, PDFs. The durable part. */
+  mediaUrls: string[];
+  /** The original, if it is still up. */
+  url?: string;
+  /** ISO date the document is dated, or the post was made. */
+  documentDate: string;
+  /** Does it carry a signature, seal or letterhead? Changes its weight a lot. */
+  signed: boolean;
+  /** The exact wording of the commitment inside it. */
+  quote?: string;
+  addedBy: string;
+  verified: boolean;
 }
 
 export type SourceKind = 'tweet' | 'news' | 'video' | 'document' | 'field_report';
@@ -167,7 +221,60 @@ export interface Commitment {
   sources: Source[];
   timeline: TimelineEvent[];
 
+  /** Sub-district / tehsil / block, when known. Narrows `district`. */
+  subdistrict?: string;
+  village?: string;
+  /** The institution the promise is about, if it is about one. */
+  school?: string;
+  /** National school code — makes this row joinable to official school data. */
+  udise?: string;
+  pincode?: string;
+
+  /**
+   * Who put this on the register. They get the breach notice, because the
+   * person who bothered to log it is the person most likely to chase it.
+   */
+  loggedBy?: Watcher;
+
   updatedAt: string;
+}
+
+/** Somebody who wants to hear when this promise breaks. */
+export interface Watcher {
+  name: string;
+  email: string;
+  /** 'logger' gets breach notices by default; 'follower' opted in. */
+  role: 'logger' | 'follower' | 'journalist' | 'official';
+}
+
+export type AlertKind =
+  /** The deadline has passed with no verified proof of completion. */
+  | 'breach'
+  /** 24 hours out, so there is still time to act. */
+  | 'due_soon'
+  /** New evidence was accepted and the status changed. */
+  | 'status_change';
+
+export type AlertAudience = 'authority' | 'watchers';
+export type AlertState = 'queued' | 'sent' | 'failed' | 'suppressed' | 'dry_run';
+
+/**
+ * One alert dispatch. Rows exist even in dry-run so the operator can read
+ * exactly what would have gone out, to whom, before switching sending on.
+ */
+export interface AlertRecord {
+  id: string;
+  commitmentId: string;
+  kind: AlertKind;
+  audience: AlertAudience;
+  recipients: string[];
+  subject: string;
+  body: string;
+  state: AlertState;
+  /** Why it was suppressed or how it failed. */
+  note?: string;
+  createdAt: string;
+  sentAt?: string;
 }
 
 /** A commitment plus everything derived from the current clock. */
@@ -179,6 +286,9 @@ export interface LiveCommitment extends Commitment {
   elapsed: number | null;
   proofCount: number;
   complaintCount: number;
+  receiptCount: number;
+  /** Receipts that carry a signature or seal — the strongest kind. */
+  signedReceiptCount: number;
 }
 
 export interface DistrictRollup {

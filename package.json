@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "check:extract": "tsx scripts/check-extract.ts",
     "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {

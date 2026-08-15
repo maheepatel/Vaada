@@ -41,6 +41,24 @@ do $$ begin
     ('open', 'acknowledged', 'resolved', 'rejected');
 exception when duplicate_object then null; end $$;
 
+do $$ begin
+  create type receipt_kind as enum
+    ('social_post', 'written_order', 'minutes', 'video', 'press_report');
+exception when duplicate_object then null; end $$;
+
+do $$ begin
+  create type alert_kind as enum ('breach', 'due_soon', 'status_change');
+exception when duplicate_object then null; end $$;
+
+do $$ begin
+  create type alert_state as enum
+    ('queued', 'sent', 'failed', 'suppressed', 'dry_run');
+exception when duplicate_object then null; end $$;
+
+do $$ begin
+  create type watcher_role as enum ('logger', 'follower', 'journalist', 'official');
+exception when duplicate_object then null; end $$;
+
 -- ---------------------------------------------------------- commitments ----
 
 create table if not exists commitments (
@@ -84,7 +102,23 @@ create table if not exists commitments (
     check ((deadline is null) = (deadline_label is null))
 );
 
+-- Finer location, added so a promise can be pinned to the exact institution.
+-- All nullable: a state-wide commitment has none of them, and refusing a row
+-- because nobody knew the block name would lose exactly the promises that
+-- matter most.
+alter table commitments add column if not exists subdistrict text;
+alter table commitments add column if not exists village     text;
+alter table commitments add column if not exists school      text;
+-- The national school code. Worth its own column because it is the join key to
+-- official enrolment and infrastructure data.
+alter table commitments add column if not exists udise       text
+  check (udise is null or udise ~ '^[0-9]{11}$');
+alter table commitments add column if not exists pincode     text
+  check (pincode is null or pincode ~ '^[1-9][0-9]{5}$');
+
 create index if not exists commitments_state_idx    on commitments (state_slug);
+create index if not exists commitments_udise_idx    on commitments (udise)
+  where udise is not null;
 create index if not exists commitments_district_idx on commitments (state_slug, district_slug);
 create index if not exists commitments_deadline_idx on commitments (deadline)
   where deadline is not null;
@@ -112,6 +146,114 @@ create table if not exists proofs (
 
 create index if not exists proofs_commitment_idx on proofs (commitment_id);
 create index if not exists proofs_verdict_idx    on proofs (verdict);
+
+-- -------------------------------------------------------------- receipts ----
+
+-- Proof the promise was MADE, as opposed to `proofs`, which is about whether
+-- it was kept. Kept separate because they answer different questions and get
+-- contested by different people.
+create table if not exists receipts (
+  id            uuid primary key default gen_random_uuid(),
+  commitment_id text not null references commitments (id) on delete cascade,
+  kind          receipt_kind not null,
+  title         text not null,
+  description   text,
+  -- Archived copies. The durable half — a bare `url` is one deletion away from
+  -- proving nothing.
+  media_urls    text[] not null default '{}',
+  url           text,
+  document_date date not null,
+  signed        boolean not null default false,
+  quote         text,
+  added_by      text not null default 'Anonymous',
+  verified      boolean not null default false,
+  created_at    timestamptz not null default now(),
+
+  -- Something has to point at the document, or the row is an assertion with
+  -- nothing behind it.
+  constraint receipt_has_content
+    check (url is not null or array_length(media_urls, 1) > 0)
+);
+
+create index if not exists receipts_commitment_idx on receipts (commitment_id);
+
+-- -------------------------------------------------------------- watchers ----
+
+-- People who asked to hear when a specific deadline runs out.
+create table if not exists watchers (
+  id            uuid primary key default gen_random_uuid(),
+  commitment_id text not null references commitments (id) on delete cascade,
+  email         text not null,
+  name          text not null default 'Anonymous',
+  role          watcher_role not null default 'follower',
+  -- Double opt-in. The alert sweep reads confirmed rows only, so somebody
+  -- typing a third party's address in cannot sign them up for mail.
+  confirmed     boolean not null default false,
+  confirm_token uuid not null default gen_random_uuid(),
+  created_at    timestamptz not null default now(),
+
+  unique (commitment_id, email)
+);
+
+create index if not exists watchers_commitment_idx on watchers (commitment_id)
+  where confirmed;
+
+-- ---------------------------------------------------------------- alerts ----
+
+-- Every notice the system composed, including the ones it deliberately did not
+-- send. Dry runs and suppressions are recorded too, so an operator can read
+-- exactly what would go out before switching sending on.
+create table if not exists alerts (
+  id            uuid primary key default gen_random_uuid(),
+  commitment_id text not null references commitments (id) on delete cascade,
+  kind          alert_kind not null,
+  audience      text not null check (audience in ('authority', 'watchers')),
+  recipients    text[] not null default '{}',
+  subject       text not null,
+  body          text not null default '',
+  state         alert_state not null default 'dry_run',
+  note          text,
+  created_at    timestamptz not null default now(),
+  sent_at       timestamptz
+);
+
+create index if not exists alerts_commitment_idx on alerts (commitment_id, kind);
+-- The de-duplication index: one notice per promise per kind per audience, ever.
+-- This is what stops an accountability tool from becoming a repeating mailer.
+create unique index if not exists alerts_once_idx
+  on alerts (commitment_id, kind, audience)
+  where state in ('sent', 'queued');
+
+-- ----------------------------------------------------- ingest candidates ----
+
+-- Output of the daily sweep. Nothing here is public and nothing here is on the
+-- map: a human promotes a candidate into `commitments`, or it stays a candidate.
+create table if not exists ingest_candidates (
+  id              uuid primary key default gen_random_uuid(),
+  fingerprint     text not null unique,
+  source_id       text not null,
+  source_label    text not null default '',
+  headline        text not null,
+  url             text not null,
+  published_at    timestamptz not null,
+  raw_text        text not null default '',
+  guessed_state   text,
+  guessed_district text,
+  -- 'extracted' carries parsed draft rows; 'lead' is a story whose headline
+  -- reads like a promise event but whose dates could not be parsed — still
+  -- worth a human opening the source, which is the point of the queue.
+  tier            text not null default 'lead'
+                  check (tier in ('extracted', 'lead')),
+  drafts          jsonb not null default '[]'::jsonb,
+  review_status   text not null default 'queued'
+                  check (review_status in ('queued', 'accepted', 'rejected')),
+  reviewed_by     text,
+  review_note     text,
+  created_at      timestamptz not null default now()
+);
+
+create index if not exists ingest_status_idx
+  on ingest_candidates (review_status, published_at desc);
 
 -- ------------------------------------------------------------ complaints ----
 
@@ -168,10 +310,14 @@ create index if not exists submissions_status_idx on submissions (review_status,
 
 -- ------------------------------------------------------------------ RLS ----
 
-alter table commitments enable row level security;
-alter table proofs      enable row level security;
-alter table complaints  enable row level security;
-alter table submissions enable row level security;
+alter table commitments       enable row level security;
+alter table proofs            enable row level security;
+alter table complaints        enable row level security;
+alter table submissions       enable row level security;
+alter table receipts          enable row level security;
+alter table watchers          enable row level security;
+alter table alerts            enable row level security;
+alter table ingest_candidates enable row level security;
 
 -- Public reads. The register is the product; it is meant to be quoted.
 drop policy if exists "read commitments" on commitments;
@@ -205,6 +351,40 @@ create policy "insert open complaints" on complaints
 drop policy if exists "insert queued submissions" on submissions;
 create policy "insert queued submissions" on submissions
   for insert with check (review_status = 'queued' and reviewed_by is null);
+
+-- Receipts are public — the whole point is that anybody can check what was
+-- promised — and anybody may add one, unverified.
+drop policy if exists "read receipts" on receipts;
+create policy "read receipts" on receipts for select using (true);
+
+drop policy if exists "insert unverified receipts" on receipts;
+create policy "insert unverified receipts" on receipts
+  for insert with check (verified = false);
+
+-- Watchers may only ever be created unconfirmed, and are never readable: the
+-- subscriber list for a politically sensitive promise is exactly the kind of
+-- thing that must not be enumerable. The alert sweep reads it as service role.
+drop policy if exists "insert unconfirmed watchers" on watchers;
+create policy "insert unconfirmed watchers" on watchers
+  for insert with check (confirmed = false);
+
+-- No policy on `alerts` or `ingest_candidates` at all, which with RLS on means
+-- the anon key can neither read nor write them. Alert bodies name individuals
+-- and quote residents' evidence; the ingest queue is unreviewed machine output.
+-- Neither is fit to be public, and both are read by the service role only.
+
+-- -------------------------------------------------------- update triggers ----
+
+create or replace function touch_updated_at() returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists commitments_touch on commitments;
+create trigger commitments_touch before update on commitments
+  for each row execute function touch_updated_at();
 
 -- Submissions are not publicly readable: an unreviewed queue would otherwise be
 -- an unmoderated publishing surface wearing the register's credibility.

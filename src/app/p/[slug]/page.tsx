@@ -12,6 +12,9 @@ import {
 import { formatDate, formatDateTime, formatCount, roughDuration } from '@/lib/format';
 import { Countdown } from '@/components/Countdown';
 import { ProofForm } from '@/components/ProofForm';
+import { Receipts } from '@/components/Receipts';
+import { AccountablePanel } from '@/components/AccountablePanel';
+import { WatchForm } from '@/components/WatchForm';
 import { BandChip, Card, ProgressBar, SectionHeading, Empty } from '@/components/ui';
 import type { Proof, TimelineEvent } from '@/lib/types';
 
@@ -38,16 +41,19 @@ export async function generateMetadata({
 export default async function PromisePage({ params }: PageProps<'/p/[slug]'>) {
   const { slug } = await params;
   const now = Date.now();
-  const { commitments, proofs, complaints } = await getRegister();
+  const { commitments, proofs, complaints, receipts } = await getRegister();
 
   const base = commitments.find((c) => c.slug === slug);
   if (!base) notFound();
 
   const myProofs = proofs.filter((p) => p.commitmentId === base.id);
   const myComplaints = complaints.filter((p) => p.commitmentId === base.id);
+  const myReceipts = receipts.filter((r) => r.commitmentId === base.id);
   const c = toLive(base, now, {
     proofs: myProofs.length,
     complaints: myComplaints.length,
+    receipts: myReceipts.length,
+    signedReceipts: myReceipts.filter((r) => r.signed).length,
   });
   const style = BAND_STYLE[c.band];
 
@@ -203,6 +209,18 @@ export default async function PromisePage({ params }: PageProps<'/p/[slug]'>) {
 
           <section>
             <SectionHeading
+              eyebrow="The receipt"
+              title="Proof this was actually promised"
+            >
+              The half officials contest first. A signed order or an archived
+              screenshot is what makes &ldquo;I never said three months&rdquo;
+              unarguable.
+            </SectionHeading>
+            <Receipts receipts={myReceipts} />
+          </section>
+
+          <section>
+            <SectionHeading
               eyebrow="Verified progress"
               title={`${c.progress}% of the work has been confirmed`}
             >
@@ -305,27 +323,9 @@ export default async function PromisePage({ params }: PageProps<'/p/[slug]'>) {
 
         {/* ===== Right: who is answerable ===== */}
         <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-          <Card className="overflow-hidden">
-            <p className="eyebrow border-b bg-surface-2 px-4 py-2.5">
-              Who has to answer for this
-            </p>
-            <ul className="divide-y">
-              {c.accountable.map((o) => (
-                <li key={o.name} className="px-4 py-3">
-                  <p className="text-[0.9rem] font-semibold leading-tight">{o.name}</p>
-                  <p className="mt-0.5 text-[0.75rem] text-ink-3">{o.role}</p>
-                  {o.body && (
-                    <p className="text-[0.75rem] text-ink-3">{o.body}</p>
-                  )}
-                  {o.handle && (
-                    <p className="mt-1 font-mono text-[0.75rem] font-medium text-[var(--brand-ink)]">
-                      {o.handle}
-                    </p>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </Card>
+          <AccountablePanel commitment={c} emphasis />
+
+          <WatchForm commitmentId={c.id} deadline={c.deadline} />
 
           <Card className="overflow-hidden">
             <p className="eyebrow border-b bg-surface-2 px-4 py-2.5">Sources</p>

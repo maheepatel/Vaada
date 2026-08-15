@@ -5,7 +5,18 @@ import { extractCommitments, type ExtractedCommitment } from '@/lib/extract';
 import { formatDate, roughDuration } from '@/lib/format';
 import { CATEGORY_LABEL } from '@/lib/status';
 import { Card } from './ui';
-import type { Category } from '@/lib/types';
+import { PlacePicker } from './PlacePicker';
+import { EMPTY_PLACE, localityFrom, type PlaceValue } from '@/lib/geo';
+import { getSupabase, PROOF_BUCKET } from '@/lib/supabase';
+import type { Category, ReceiptKind } from '@/lib/types';
+
+const RECEIPT_KINDS: { value: ReceiptKind; label: string; hint: string }[] = [
+  { value: 'social_post', label: 'Social media post', hint: 'A post on X, Facebook, Instagram or YouTube' },
+  { value: 'written_order', label: 'Written order or letter', hint: 'On letterhead, ideally signed or sealed' },
+  { value: 'minutes', label: 'Minutes or memorandum', hint: 'A record made at the time by the parties present' },
+  { value: 'video', label: 'Video', hint: 'The official saying it, on camera' },
+  { value: 'press_report', label: 'Press report', hint: 'A news article quoting the commitment' },
+];
 
 const EXAMPLE = `GenAlpha's enthusiasm. CJP's fear.
 
@@ -33,14 +44,17 @@ export function SubmitForm() {
   const [promisedOn, setPromisedOn] = useState(
     new Date().toISOString().slice(0, 10),
   );
-  const [state, setState] = useState('');
-  const [district, setDistrict] = useState('');
-  const [locality, setLocality] = useState('');
+  const [place, setPlace] = useState<PlaceValue>(EMPTY_PLACE);
   const [demandedBy, setDemandedBy] = useState('');
   const [files, setFiles] = useState<File[]>([]);
+  const [receiptKind, setReceiptKind] = useState<ReceiptKind>('social_post');
+  const [receiptSigned, setReceiptSigned] = useState(false);
+  const [loggerEmail, setLoggerEmail] = useState('');
+  const [loggerName, setLoggerName] = useState('');
   const [edits, setEdits] = useState<Record<number, Partial<ExtractedCommitment>>>({});
   const [dropped, setDropped] = useState<Set<number>>(new Set());
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
 
   // Captured once at mount. Deadlines are offsets from the promise date, so
@@ -66,11 +80,37 @@ export function SubmitForm() {
     setEdits((prev) => ({ ...prev, [i]: { ...prev[i], ...p } }));
   }
 
+  /**
+   * Uploads the screenshots before the row is queued.
+   *
+   * Done first, and blocking, on purpose: the images are the durable part of a
+   * receipt, and queueing a submission that references uploads which then fail
+   * would leave a row claiming evidence it does not have.
+   */
+  async function uploadReceiptMedia(): Promise<string[]> {
+    const sb = getSupabase();
+    if (!sb || files.length === 0) return [];
+    setUploading(true);
+    try {
+      const urls: string[] = [];
+      for (const file of files) {
+        const path = `receipts/${Date.now()}-${file.name.replace(/[^\w.-]/g, '_')}`;
+        const { error } = await sb.storage.from(PROOF_BUCKET).upload(path, file);
+        if (error) throw new Error(`Upload failed: ${error.message}`);
+        urls.push(sb.storage.from(PROOF_BUCKET).getPublicUrl(path).data.publicUrl);
+      }
+      return urls;
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
     setResult(null);
     try {
+      const mediaUrls = await uploadReceiptMedia();
       const res = await fetch('/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -79,12 +119,25 @@ export function SubmitForm() {
           publisher: publisher.trim() || 'Unattributed post',
           rawText: text,
           promisedOn: `${promisedOn}T12:00:00+05:30`,
-          state,
-          district,
-          locality,
+          state: place.state,
+          district: place.district,
+          subdistrict: place.subdistrict,
+          village: place.village,
+          school: place.school,
+          udise: place.udise,
+          pincode: place.pincode,
+          locality: localityFrom(place),
           demandedBy,
           handles: extraction.handles,
-          imageCount: files.length,
+          receipt: {
+            kind: receiptKind,
+            signed: receiptSigned,
+            url: sourceUrl,
+            mediaUrls,
+          },
+          loggedBy: loggerEmail.trim()
+            ? { name: loggerName.trim() || 'Anonymous', email: loggerEmail.trim(), role: 'logger' }
+            : null,
           commitments: kept,
         }),
       });
@@ -155,16 +208,17 @@ export function SubmitForm() {
 
         <Card className="p-4 sm:p-5">
           <p className="eyebrow">Step 2</p>
-          <h2 className="mt-1 text-[1.05rem] font-semibold">Where and when</h2>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <Field label="State" value={state} onChange={setState} placeholder="Rajasthan" required />
-            <Field label="District" value={district} onChange={setDistrict} placeholder="Alwar" />
-            <Field
-              label="Village / school / block"
-              value={locality}
-              onChange={setLocality}
-              placeholder="Jodhawas, Thanagazi"
-            />
+          <h2 className="mt-1 text-[1.05rem] font-semibold">Exactly where</h2>
+          <p className="mt-1.5 text-[0.8rem] leading-relaxed text-ink-3">
+            Each field narrows the next. Anything not in our lists can still be
+            typed in — the lists exist to keep spellings consistent, not to
+            refuse places we have not heard of.
+          </p>
+          <div className="mt-4">
+            <PlacePicker value={place} onChange={setPlace} />
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <label className="block">
               <span className="eyebrow">Date promised</span>
               <input
@@ -174,6 +228,9 @@ export function SubmitForm() {
                 onChange={(e) => setPromisedOn(e.target.value)}
                 className="mt-1.5 w-full rounded-lg border bg-paper px-3 py-2 text-[0.88rem] outline-none focus:border-[var(--brand)]"
               />
+              <span className="mt-1 block text-[0.7rem] text-ink-3">
+                Every deadline below is counted from this date.
+              </span>
             </label>
             <Field
               label="Who forced it"
@@ -181,40 +238,147 @@ export function SubmitForm() {
               onChange={setDemandedBy}
               placeholder="Students and parents of…"
             />
+          </div>
+        </Card>
+
+        <Card className="p-4 sm:p-5">
+          <p className="eyebrow">Step 3</p>
+          <h2 className="mt-1 text-[1.05rem] font-semibold">The receipt</h2>
+          <p className="mt-1.5 text-[0.8rem] leading-relaxed text-ink-3">
+            Proof the promise was <em>made</em>. This is the half officials
+            contest first, so a screenshot matters more than a link — if the post
+            comes down, a link proves nothing.
+          </p>
+
+          <fieldset className="mt-4">
+            <legend className="eyebrow mb-2">What kind of document is it?</legend>
+            <div className="flex flex-wrap gap-1.5">
+              {RECEIPT_KINDS.map((k) => (
+                <label
+                  key={k.value}
+                  title={k.hint}
+                  className={`cursor-pointer rounded-full px-3 py-1.5 text-[0.78rem] font-medium transition-colors ${
+                    receiptKind === k.value
+                      ? 'bg-ink text-paper'
+                      : 'bg-surface-2 text-ink-2 hover:bg-surface-3'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="receiptKind"
+                    className="sr-only"
+                    checked={receiptKind === k.value}
+                    onChange={() => setReceiptKind(k.value)}
+                  />
+                  {k.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <label className="mt-4 flex items-start gap-2.5">
+            <input
+              type="checkbox"
+              checked={receiptSigned}
+              onChange={(e) => setReceiptSigned(e.target.checked)}
+              className="mt-0.5 size-4 shrink-0"
+            />
+            <span className="text-[0.83rem] leading-snug">
+              It carries a signature, seal or letterhead
+              <span className="block text-[0.73rem] text-ink-3">
+                A signed order is the strongest thing this register can hold.
+              </span>
+            </span>
+          </label>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <Field
               label="Source account or outlet"
               value={publisher}
               onChange={setPublisher}
               placeholder="@AshutoshRanka"
             />
+            <label className="block">
+              <span className="eyebrow">Link to the original</span>
+              <input
+                type="url"
+                value={sourceUrl}
+                onChange={(e) => setSourceUrl(e.target.value)}
+                placeholder="https://x.com/…"
+                className="mt-1.5 w-full rounded-lg border bg-paper px-3 py-2 text-[0.88rem] outline-none placeholder:text-ink-4 focus:border-[var(--brand)]"
+              />
+            </label>
           </div>
+
           <label className="mt-3 block">
-            <span className="eyebrow">Link to the post</span>
-            <input
-              type="url"
-              value={sourceUrl}
-              onChange={(e) => setSourceUrl(e.target.value)}
-              placeholder="https://x.com/…"
-              className="mt-1.5 w-full rounded-lg border bg-paper px-3 py-2 text-[0.88rem] outline-none placeholder:text-ink-4 focus:border-[var(--brand)]"
-            />
-          </label>
-          <label className="mt-3 block">
-            <span className="eyebrow">Screenshots or photos from the post</span>
+            <span className="eyebrow">
+              Screenshots, scans or photos of the document
+            </span>
             <input
               type="file"
               multiple
-              accept="image/*"
+              accept="image/*,application/pdf"
               onChange={(e) => setFiles([...(e.target.files ?? [])])}
               className="mt-1.5 w-full rounded-lg border bg-paper px-3 py-2 text-[0.82rem] file:mr-3 file:rounded-md file:border-0 file:bg-surface-3 file:px-2.5 file:py-1 file:text-[0.78rem] file:font-medium"
             />
+            {files.length > 0 ? (
+              <span className="mt-1 block text-[0.72rem] text-ink-3">
+                {files.length} file{files.length === 1 ? '' : 's'} — these become
+                the permanent record.
+              </span>
+            ) : (
+              <span
+                className="mt-1.5 block rounded px-2 py-1.5 text-[0.73rem] leading-snug"
+                style={{
+                  background: 'var(--band-urgent-soft)',
+                  color: 'var(--band-urgent-ink)',
+                }}
+              >
+                Nothing attached. A link alone is fragile — if the post is
+                deleted, this entry can no longer show what was promised.
+              </span>
+            )}
           </label>
+        </Card>
+
+        <Card className="p-4 sm:p-5">
+          <p className="eyebrow">Step 4</p>
+          <h2 className="mt-1 text-[1.05rem] font-semibold">
+            Should we tell you when it breaks?
+          </h2>
+          <p className="mt-1.5 text-[0.8rem] leading-relaxed text-ink-3">
+            Optional. If you leave an address you get two emails about these
+            promises and nothing else: one shortly before each deadline, one if
+            it passes with no verified proof the work was done.
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <Field
+              label="Your name"
+              value={loggerName}
+              onChange={setLoggerName}
+              placeholder="Optional"
+            />
+            <label className="block">
+              <span className="eyebrow">Your email</span>
+              <input
+                type="email"
+                value={loggerEmail}
+                onChange={(e) => setLoggerEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="mt-1.5 w-full rounded-lg border bg-paper px-3 py-2 text-[0.88rem] outline-none placeholder:text-ink-4 focus:border-[var(--brand)]"
+              />
+            </label>
+          </div>
+          <p className="mt-2 text-[0.7rem] leading-relaxed text-ink-3">
+            Never shown publicly and never given to any official.
+          </p>
         </Card>
       </div>
 
       {/* ---- Right: the drafted rows ---- */}
       <div className="space-y-4">
         <Card className="p-4 sm:p-5">
-          <p className="eyebrow">Step 3</p>
+          <p className="eyebrow">What the parser found</p>
           <h2 className="mt-1 text-[1.05rem] font-semibold">
             {kept.length > 0
               ? `${kept.length} promise${kept.length === 1 ? '' : 's'} found`
@@ -274,10 +438,14 @@ export function SubmitForm() {
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="submit"
-              disabled={busy || kept.length === 0 || !state}
+              disabled={busy || kept.length === 0 || !place.state}
               className="rounded-full bg-ink px-4 py-2 text-[0.85rem] font-semibold text-paper transition-opacity hover:opacity-85 disabled:opacity-40"
             >
-              {busy ? 'Submitting…' : `Submit ${kept.length} promise${kept.length === 1 ? '' : 's'}`}
+              {uploading
+                ? 'Uploading evidence…'
+                : busy
+                  ? 'Submitting…'
+                  : `Submit ${kept.length} promise${kept.length === 1 ? '' : 's'}`}
             </button>
             {result && (
               <p

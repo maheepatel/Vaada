@@ -1,8 +1,8 @@
 import 'server-only';
 
-import { COMMITMENTS, COMPLAINTS, PROOFS } from '@/data/seed';
+import { COMMITMENTS, COMPLAINTS, PROOFS, RECEIPTS } from '@/data/seed';
 import { getSupabase } from './supabase';
-import type { Commitment, Complaint, Proof } from './types';
+import type { Commitment, Complaint, Proof, Receipt } from './types';
 
 /**
  * The read layer.
@@ -66,6 +66,23 @@ function rowToProof(r: Row): Proof {
   };
 }
 
+function rowToReceipt(r: Row): Receipt {
+  return {
+    id: String(r.id),
+    commitmentId: String(r.commitment_id),
+    kind: r.kind as Receipt['kind'],
+    title: String(r.title),
+    description: (r.description as string | undefined) ?? undefined,
+    mediaUrls: (r.media_urls as string[]) ?? [],
+    url: (r.url as string | undefined) ?? undefined,
+    documentDate: String(r.document_date),
+    signed: Boolean(r.signed),
+    quote: (r.quote as string | undefined) ?? undefined,
+    addedBy: String(r.added_by ?? 'Anonymous'),
+    verified: Boolean(r.verified),
+  };
+}
+
 function rowToComplaint(r: Row): Complaint {
   return {
     id: String(r.id),
@@ -113,14 +130,52 @@ export async function getComplaints(): Promise<Complaint[]> {
   return (data as Row[]).map(rowToComplaint);
 }
 
+export async function getReceipts(): Promise<Receipt[]> {
+  const sb = getSupabase();
+  if (!sb) return RECEIPTS;
+  const { data, error } = await sb.from('receipts').select('*');
+  if (error || !data) return RECEIPTS;
+  return (data as Row[]).map(rowToReceipt);
+}
+
 /** Everything a page needs, fetched once. */
 export async function getRegister() {
-  const [commitments, proofs, complaints] = await Promise.all([
+  const [commitments, proofs, complaints, receipts] = await Promise.all([
     getCommitments(),
     getProofs(),
     getComplaints(),
+    getReceipts(),
   ]);
-  return { commitments, proofs, complaints };
+  return { commitments, proofs, complaints, receipts };
+}
+
+/**
+ * The counts every page needs to turn a `Commitment` into a `LiveCommitment`.
+ * Built once per request rather than per row, so a 500-row register is still
+ * one pass rather than 2,000 array scans.
+ */
+export function buildCounts(
+  proofs: Proof[],
+  complaints: Complaint[],
+  receipts: Receipt[],
+) {
+  const proofCounts = countBy(proofs, (p) => p.commitmentId);
+  const complaintCounts = countBy(
+    complaints.filter((c) => c.commitmentId),
+    (c) => c.commitmentId as string,
+  );
+  const receiptCounts = countBy(receipts, (r) => r.commitmentId);
+  const signedCounts = countBy(
+    receipts.filter((r) => r.signed),
+    (r) => r.commitmentId,
+  );
+
+  return (id: string) => ({
+    proofs: proofCounts.get(id),
+    complaints: complaintCounts.get(id),
+    receipts: receiptCounts.get(id),
+    signedReceipts: signedCounts.get(id),
+  });
 }
 
 export async function getCommitmentBySlug(slug: string): Promise<Commitment | null> {

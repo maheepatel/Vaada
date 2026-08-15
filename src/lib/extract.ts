@@ -55,6 +55,26 @@ const IMMEDIATE_RE =
   /\b(immediately|at once|right away|same day|today|turant|foran|within hours)\b/i;
 
 /**
+ * Durations that describe something rather than commit to it.
+ *
+ * "a three-week-long protest" is not a three-week deadline; "the 15-day-old
+ * agitation" is not a promise; "for the last two months" points backwards.
+ * These crept in as soon as extraction moved from tweets to article prose, and
+ * each one costs a reviewer real time, so they are cut before the parse.
+ */
+const DESCRIPTIVE_RE = new RegExp(
+  String.raw`(?:` +
+    // "three-week-long", "15-day-old"
+    String.raw`(?:\d{1,4}|${Object.keys(NUMBER_WORDS).join('|')})[\s-]*(?:${Object.keys(UNIT_MS).join('|')})s?[\s-]*(?:long|old)\b` +
+    // backward-looking: "for the last two months", "over the past 3 weeks"
+    String.raw`|\b(?:for|over|since|during|after|past|last)\s+(?:the\s+)?(?:last|past)?\s*(?:\d{1,4}|${Object.keys(NUMBER_WORDS).join('|')})[\s-]*(?:${Object.keys(UNIT_MS).join('|')})s?\b` +
+    // "aged 12 years", "a 40-year-old"
+    String.raw`|\baged?\s+\d{1,3}\b` +
+    String.raw`)`,
+  'i',
+);
+
+/**
  * A sentence is a candidate commitment only if it contains a marker of future
  * obligation. Without this the extractor returns the whole post as "promises",
  * which is worse than returning nothing.
@@ -107,6 +127,18 @@ function sentences(text: string): string[] {
 }
 
 export function parseDuration(text: string): { ms: number; label: string } | null {
+  // A sentence whose only time expression describes the past or the length of
+  // something is not stating a deadline, whatever else it says.
+  const descriptive = DESCRIPTIVE_RE.exec(text);
+  if (descriptive) {
+    const stripped = text.replace(DESCRIPTIVE_RE, ' ');
+    // Re-run against what is left, in case a real deadline sits alongside it:
+    // "after three weeks of protest, repairs will be done within 10 days".
+    return stripped.trim().length > 12 && stripped !== text
+      ? parseDuration(stripped)
+      : null;
+  }
+
   const immediate = IMMEDIATE_RE.exec(text);
   if (immediate) {
     // "Immediately" is treated as 48 hours: short enough to be a real clock,

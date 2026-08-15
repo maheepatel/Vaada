@@ -12,7 +12,7 @@
  * which is a claim about the evidence, not about the ground.
  */
 
-import type { Commitment, Complaint, Proof } from '@/lib/types';
+import type { Commitment, Complaint, Proof, Receipt } from '@/lib/types';
 
 const TWEET_JODHAWAS = {
   kind: 'tweet' as const,
@@ -1030,6 +1030,162 @@ export const COMMITMENTS: Commitment[] = [
       { at: '2026-08-06T10:00:00+05:30', kind: 'demand', label: 'Raised by the student delegation at the first sitting' },
     ],
     updatedAt: '2026-08-11T10:00:00+05:30',
+  },
+];
+
+// --- Receipts: proof the promise was made ----------------------------------
+
+/**
+ * The other half of the record.
+ *
+ * Note how many of these are `mediaUrls: []` with only a `url`. That is a real
+ * weakness and the UI says so out loud: a link to a post is not an archive, and
+ * "I never said three months" becomes unanswerable the moment the post comes
+ * down. Capturing screenshots is the single highest-value contribution anyone
+ * can make to this register.
+ */
+export const RECEIPTS: Receipt[] = [
+  {
+    id: 'rcpt-jodhawas-tweet',
+    commitmentId: 'raj-alwar-jodhawas-classrooms',
+    kind: 'social_post',
+    title: 'Post announcing the agreement after the five-hour sit-in',
+    description:
+      'Lists the classroom repairs, the seven rooms, the road and the playground, each with the window agreed.',
+    mediaUrls: [],
+    url: 'https://x.com/AshutoshRanka/status/2088272688729256354',
+    documentDate: '2026-08-14',
+    signed: false,
+    quote:
+      'In Jodhawas, Thanagazi, all classrooms will be repaired within one week and used exclusively for children.',
+    addedBy: 'Founding register',
+    verified: true,
+  },
+  {
+    id: 'rcpt-jodhawas-road-tweet',
+    commitmentId: 'raj-alwar-jodhawas-road',
+    kind: 'social_post',
+    title: 'Post stating the 48-hour road commitment',
+    mediaUrls: [],
+    url: 'https://x.com/AshutoshRanka/status/2088272688729256354',
+    documentDate: '2026-08-14',
+    signed: false,
+    quote: 'The road for commuting will be ready in the next 48 hours.',
+    addedBy: 'Founding register',
+    verified: true,
+  },
+  {
+    id: 'rcpt-jodhawas-press',
+    commitmentId: 'raj-alwar-jodhawas-classrooms',
+    kind: 'press_report',
+    title: 'Rajasthan Patrika report on the Jodhavas protest',
+    description:
+      'Independent account of the sit-in, the memorandum handed over, and the five vacant secondary-teacher posts.',
+    mediaUrls: [],
+    url: 'https://www.patrika.com/alwar-news/cjp-ashutosh-ranka-jodhavas-school-protest-20833127',
+    documentDate: '2026-08-14',
+    signed: false,
+    addedBy: 'Founding register',
+    verified: true,
+  },
+  {
+    id: 'rcpt-statewide-ultimatum',
+    commitmentId: 'raj-statewide-dilapidated-schools',
+    kind: 'social_post',
+    title: 'Three-month state-wide ultimatum to the School Education Minister',
+    mediaUrls: [],
+    url: 'https://x.com/AshutoshRanka/status/2088272688729256354',
+    documentDate: '2026-08-14',
+    signed: false,
+    quote:
+      'Madan Dilawar ji, get all the dilapidated schools fixed within three months.',
+    addedBy: 'Founding register',
+    verified: true,
+  },
+  {
+    id: 'rcpt-barmer-press',
+    commitmentId: 'raj-barmer-three-teachers',
+    kind: 'press_report',
+    title: 'ThePrint account of the 27 July settlement at Bankalpura',
+    description:
+      'Records the District Education Officer assuring three immediate deployments, on which the sit-in was withdrawn.',
+    mediaUrls: [],
+    url: 'https://theprint.in/feature/up-bihar-rajasthan-gen-alpha-protests-poor-school-infrastructure/3004368/',
+    documentDate: '2026-08-02',
+    signed: false,
+    quote: 'the district education officer assured them that three teachers would be deployed at once',
+    addedBy: 'Founding register',
+    verified: true,
+  },
+  {
+    id: 'rcpt-barmer-broken',
+    commitmentId: 'raj-barmer-deputation-broken',
+    kind: 'press_report',
+    title: 'Report recording that the first assurance went unfulfilled',
+    description:
+      'The clearest kind of receipt there is: a published account confirming a promise was made and then not kept.',
+    mediaUrls: [],
+    url: 'https://theprint.in/feature/up-bihar-rajasthan-gen-alpha-protests-poor-school-infrastructure/3004368/',
+    documentDate: '2026-08-02',
+    signed: false,
+    quote:
+      'the promise was not fulfilled, prompting them to resume their agitation on July 27',
+    addedBy: 'Founding register',
+    verified: true,
+  },
+  {
+    id: 'rcpt-gaya-notice',
+    commitmentId: 'bih-gaya-showcause',
+    kind: 'written_order',
+    title: 'Show-cause notice issued to Simuara Middle School staff',
+    description:
+      'Notice number and issuing office verified by the editorial desk. Salaries withheld pending explanations.',
+    mediaUrls: [],
+    documentDate: '2026-07-30',
+    signed: true,
+    addedBy: 'Local journalist',
+    verified: true,
+  },
+  {
+    id: 'rcpt-gaya-committee',
+    commitmentId: 'bih-gaya-committee',
+    kind: 'minutes',
+    title: 'SDM order constituting the three-member inquiry committee',
+    description: 'Sets the 4–5 day resolution deadline that expired on 4 August.',
+    mediaUrls: [],
+    documentDate: '2026-07-30',
+    signed: true,
+    addedBy: 'Village education committee, Simuara',
+    verified: false,
+  },
+  {
+    id: 'rcpt-fatehpur-press',
+    commitmentId: 'up-fatehpur-fans-wiring',
+    kind: 'press_report',
+    title: 'Report of the Principal’s one-month undertaking',
+    description:
+      'Four fans per classroom, electrical repairs and furniture, committed in front of roughly 1,500 students.',
+    mediaUrls: [],
+    url: 'https://theprint.in/feature/up-bihar-rajasthan-gen-alpha-protests-poor-school-infrastructure/3004368/',
+    documentDate: '2026-08-02',
+    signed: false,
+    quote: 'promised four fans per classroom, electrical repairs, furniture within one month',
+    addedBy: 'Founding register',
+    verified: true,
+  },
+  {
+    id: 'rcpt-jpsc-cancellation',
+    commitmentId: 'jha-ranchi-cancel-jpsc',
+    kind: 'minutes',
+    title: 'Record of the 10 August talks with the 11-member student delegation',
+    description:
+      'The state agreed to cancel three examinations. No written cancellation notification has been produced since — which is what the open complaint on this row is about.',
+    mediaUrls: [],
+    url: 'https://en.wikipedia.org/wiki/2026_Jharkhand_student_protests',
+    documentDate: '2026-08-10',
+    signed: false,
+    addedBy: 'Founding register',
+    verified: true,
   },
 ];
 

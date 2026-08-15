@@ -76,6 +76,19 @@ export async function POST(request: Request) {
     );
   }
 
+  const receipt = (payload.receipt ?? {}) as Record<string, unknown>;
+  const receiptMedia = Array.isArray(receipt.mediaUrls)
+    ? (receipt.mediaUrls as unknown[]).map(String).slice(0, 12)
+    : [];
+
+  const logger = payload.loggedBy as { name?: unknown; email?: unknown } | null;
+  const loggerEmail = logger?.email ? String(logger.email).trim().toLowerCase() : '';
+  // A malformed address is dropped rather than rejecting the whole submission —
+  // the promise is worth more than the subscription.
+  const loggerValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(loggerEmail);
+
+  const pincode = String(payload.pincode ?? '').trim();
+
   const submission = {
     source_url: String(payload.sourceUrl ?? ''),
     publisher: String(payload.publisher ?? 'Unattributed post').slice(0, 120),
@@ -85,12 +98,22 @@ export async function POST(request: Request) {
     state_slug: slugify(state),
     district: district || null,
     district_slug: district ? slugify(district) : null,
+    subdistrict: String(payload.subdistrict ?? '').slice(0, 120) || null,
+    village: String(payload.village ?? '').slice(0, 120) || null,
+    school: String(payload.school ?? '').slice(0, 200) || null,
+    udise: String(payload.udise ?? '').replace(/\D/g, '').slice(0, 11) || null,
+    pincode: /^[1-9][0-9]{5}$/.test(pincode) ? pincode : null,
     locality: String(payload.locality ?? '').slice(0, 200),
     demanded_by: String(payload.demandedBy ?? '').slice(0, 200),
     handles: Array.isArray(payload.handles)
       ? (payload.handles as unknown[]).map(String).slice(0, 30)
       : [],
-    image_count: Number(payload.imageCount ?? 0),
+    receipt_kind: String(receipt.kind ?? 'social_post'),
+    receipt_signed: Boolean(receipt.signed),
+    receipt_media: receiptMedia,
+    image_count: receiptMedia.length,
+    logged_by_name: loggerValid ? String(logger?.name ?? 'Anonymous').slice(0, 80) : null,
+    logged_by_email: loggerValid ? loggerEmail : null,
     drafts: rows,
     review_status: 'queued',
   };

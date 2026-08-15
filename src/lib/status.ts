@@ -208,7 +208,12 @@ export function bandFor(c: Commitment, now: number): UrgencyBand {
 export function toLive(
   c: Commitment,
   now: number,
-  counts: { proofs?: number; complaints?: number } = {},
+  counts: {
+    proofs?: number;
+    complaints?: number;
+    receipts?: number;
+    signedReceipts?: number;
+  } = {},
 ): LiveCommitment {
   return {
     ...c,
@@ -217,6 +222,8 @@ export function toLive(
     elapsed: elapsedFraction(c, now),
     proofCount: counts.proofs ?? 0,
     complaintCount: counts.complaints ?? 0,
+    receiptCount: counts.receipts ?? 0,
+    signedReceiptCount: counts.signedReceipts ?? 0,
   };
 }
 
