@@ -1,0 +1,40 @@
+# Runs on every push and pull request.
+#
+# The register's credibility rests on it not shipping broken pages, so this is
+# deliberately the same four commands CONTRIBUTING.md asks you to run locally.
+# No deploy step: Vercel builds from the same commits on its own.
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      # Guards the deadline parser against the false positives that have
+      # already been found in live news copy.
+      - name: Extractor checks
+        run: npm run check:extract
+
+      # Builds with no environment variables, which is the state a first
+      # deployment is in. If this passes, deploy-first-configure-later holds.
+      - name: Build
+        run: npm run build

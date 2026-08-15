@@ -1,21 +1,131 @@
+<div align="center">
+
 # Vaada
 
-A public register of promises made by government officials — what was agreed,
-in front of whom, by when, and what citizens found when they went and looked.
+**A public register of promises made by government officials, and whether they were kept.**
 
-Built after a wave of school protests across India in July–August 2026, where
-students won commitments in public and then had no way to hold anyone to them
-once the cameras left.
+Every promise here was made out loud, in public, with a deadline the official
+chose themselves. This site publishes the countdown.
 
-## The idea in one paragraph
+[Method](#how-a-tile-gets-its-colour) · [Running it](#running-it) · [Hosting](DEPLOY.md) · [Contributing](CONTRIBUTING.md)
 
-Every row is one thing a named official said in public they would do, in one
-place, by a date they chose themselves. The register renders as a mosaic: one
-box per state, one tile per promise, sized by how many people it affects and
-coloured by how much of the promised window has burned. Tiles start green and
-slide through yellow and orange to red. A red tile means the deadline passed
-with no verified proof of completion. Anybody can send evidence from the ground,
-and only accepted evidence moves a progress bar.
+</div>
+
+---
+
+![The map](docs/screenshots/home.png)
+
+## What this is
+
+In July and August 2026, school students across India walked out over
+classrooms with no roofs, schools with no teachers, and toilets nobody could
+use. In place after place they won commitments: repairs within a week, seven
+rooms in three months, a road in 48 hours.
+
+Then the cameras left, and there was no way to hold anyone to any of it.
+
+Vaada is that missing piece. One row per commitment, one tile per row. Tiles
+start green and slide through yellow and orange to red as the window the
+official themselves named runs out. When a tile goes red, the deadline passed
+and nobody could show the work was done.
+
+It is deliberately dull machinery. The whole value is that it is checkable.
+
+## What makes it different from a spreadsheet
+
+**An undated promise is a finding, not missing data.** A promise with no
+deadline can never be broken, which is exactly why it gets given. Those are
+counted, coloured separately, and shown on the front page.
+
+**Silence is a result.** Demands raised in public and met with no answer at all
+stay on the register as `unanswered` rather than quietly disappearing.
+
+**Progress moves on evidence, never on an announcement.** A bar only advances
+when a volunteer accepts a photograph, a document, or a measurement. An official
+saying the work is finished does not move it by itself.
+
+**A red tile is a claim about evidence, not about a person.** The wording
+throughout is "the deadline passed with no verified proof of completion". That
+is what the register can actually show, and it is the line the whole project
+depends on.
+
+---
+
+## The screens
+
+### The map
+
+One box per state, one tile per promise, sized by how many people it affects.
+Everything that matters is on screen before you scroll.
+
+![Home page](docs/screenshots/home.png)
+
+### Drilling in
+
+State → district → the individual promise. At district level the map goes full
+width so the tiles are readable without hovering.
+
+![District view](docs/screenshots/district.png)
+
+### One promise
+
+A live countdown, the receipt proving it was promised, the evidence citizens
+sent from the ground, an audit trail, and the named officials who owe an answer.
+
+![Promise detail](docs/screenshots/promise.png)
+
+### Scoreboard
+
+State and district league tables, delivery speed, and per-category kept rates.
+Places are only scored on promises that have actually been decided.
+
+![Scoreboard](docs/screenshots/scoreboard.png)
+
+### Who is answerable
+
+Every official named on the register with the promises they own and their kept
+rate. A jointly accepted promise counts against every name on it, so nobody can
+point at the other.
+
+![Authority index](docs/screenshots/authority.png)
+
+### Logging a promise
+
+Paste a post. Duration phrases like "within one week" and "in the next 48
+hours" become real deadlines, named officials are picked out, and the location
+narrows from state down to the individual school.
+
+![Submission form](docs/screenshots/submit.png)
+
+### On a phone
+
+<img src="docs/screenshots/home-mobile.png" width="330" alt="The map on a phone">
+
+---
+
+## How a tile gets its colour
+
+Let *e* be the share of the promised window already spent.
+
+| Condition | Band | Meaning |
+| --- | --- | --- |
+| `e < 0.55` | On the clock | Plenty of the window left |
+| `0.55 ≤ e < 0.80` | Running down | More than half gone; ask for a status |
+| `0.80 ≤ e < 0.95` | Almost due | The deadline is about to land |
+| `e ≥ 0.95` | Final hours | Escalate now |
+| past the deadline | **Broken** | Passed with no verified proof of completion |
+| completed & verified | **Kept** | Done, and citizens confirmed it |
+| no deadline ever given | No deadline | Accepted, but untrackable. Demand a date. |
+| nobody responded | Unanswered | Raised in public, met with silence |
+
+The colour tracks the window that was *agreed*, not how hard the job is. A
+48-hour road promise therefore reddens about 45 times faster than a three-month
+building promise, which is the correct behaviour: both parties agreed to those
+terms.
+
+Full rules are published on `/method` in the running app.
+
+---
 
 ## Running it
 
@@ -24,127 +134,113 @@ npm install
 npm run dev      # http://localhost:5300
 ```
 
-It runs with no configuration. Without Supabase credentials it reads the
+It runs with **no configuration**. Without database credentials it serves the
 founding register from `src/data/seed.ts` and validates submissions without
 storing them, which is enough to develop against.
 
-### With Supabase
+### With a database
 
-1. Create a project.
+1. Create a Supabase project.
 2. Run `supabase/schema.sql` in the SQL editor.
 3. Copy `.env.example` to `.env.local` and fill it in.
-4. `npm run db:seed` (needs `SUPABASE_SERVICE_ROLE_KEY`).
+4. `npm run db:seed`
 
-## Layout
+Deployment is covered in [DEPLOY.md](DEPLOY.md).
+
+### Scripts
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Dev server on port 5300 |
+| `npm run build` | Production build |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run lint` | ESLint |
+| `npm run check:extract` | Sanity-check the deadline parser |
+| `npm run db:seed` | Load the founding register into Supabase |
+| `node scripts/screenshots.mjs` | Regenerate the images in this README |
+
+---
+
+## The founding register
+
+32 commitments across Rajasthan, Uttar Pradesh, Bihar, Madhya Pradesh,
+Maharashtra and Jharkhand, every one traceable to a published source, plus 10
+receipts and 6 pieces of citizen evidence.
+
+It includes a documented broken promise: an assurance given in Barmer on 25 July
+2026 that went unfulfilled and triggered a second protest two days later. That
+row exists because the register is only worth anything if it records the
+failures as carefully as the wins.
+
+---
+
+## How it is built
+
+Next.js 16, React 19, Tailwind v4, TypeScript, Supabase. No UI component
+library; the design system is about 200 lines of CSS custom properties.
 
 ```
 src/lib/
-  types.ts     the domain model. Read this first.
-  status.ts    the status engine — pure, clock-in-explicitly, no DOM
-  treemap.ts   squarified treemap, output in percentages
-  extract.ts   post -> draft commitments (duration phrases, named officials)
-  data.ts      read layer: Supabase if configured, seed file otherwise
-src/data/seed.ts   the founding register, every row sourced
-src/components/    Mosaic, Countdown, forms, UI primitives
-src/app/           routes
-supabase/schema.sql   tables, constraints, RLS
-scripts/seed.ts       pushes the seed into a fresh project
+  types.ts        the domain model. Read this first.
+  status.ts       bands, thresholds, rollups. Pure, and takes the clock as an argument.
+  treemap.ts      squarified treemap (Bruls, Huizing & van Wijk)
+  extract.ts      text to draft commitments: durations, named officials
+  authority.ts    rolls promises up by the person who owns them
+  scoreboard.ts   league tables, with sample-size guards
+  alerts.ts       breach detection and notice composition. Cannot reach the network.
+  ingest.ts       news source registry, feed parsing, candidate building
+  geo.ts          India lookups; every level accepts free text
+src/data/seed.ts       the founding register
+src/components/        Mosaic, Countdown, PlacePicker, Receipts, the intake forms
+src/app/api/cron/      the daily ingestion and deadline sweeps
+supabase/schema.sql    tables, constraints, row-level security
 ```
 
-## Routes
+### Two design decisions worth knowing
 
-| Route | What it is |
-| --- | --- |
-| `/` | national mosaic, scorecard, what is closest to breaking |
-| `/s/[state]` | district mosaics for one state |
-| `/s/[state]/[district]` | every promise in a district, plus local complaints |
-| `/p/[slug]` | one promise: live clock, receipts, evidence, audit trail, who answers |
-| `/register` | the full list with filters |
-| `/deadlines` | live countdowns bucketed by horizon |
-| `/authority` | every official named, ranked by missed deadlines |
-| `/authority/[slug]` | one official's record and kept rate |
-| `/complaints` | complaints register |
-| `/submit` | paste a post, get drafted commitments |
-| `/review` | the moderation queue (token-gated, noindex) |
-| `/method` | the full rule set behind the colours |
+**The status engine never reads the clock itself.** `now` is passed in
+everywhere. Server components read it once per request and thread it down;
+client countdowns are seeded with the server's value so the first render matches
+and hydration stays silent.
 
-## The two automated jobs
+**Nothing the machine finds publishes itself.** The daily news sweep writes to a
+review queue, never to the register. A pipeline that decides on its own that a
+named minister promised something, and paints that on a public map, will
+eventually be wrong about a real person, and one such row discredits every
+correct row beside it.
 
-Both are cron routes protected by `CRON_SECRET`. `vercel.json` schedules them.
-Vercel Cron can only issue GET, so GET is the live run and `?preview=1` is the
-safe read-only version — use that by hand.
+---
 
-**`/api/cron/ingest`** (01:30 daily) reads news feeds and queues anything that
-reads like an official accepting a demand. It writes to `ingest_candidates`,
-never to `commitments`. Publisher feeds carry real article URLs, so their bodies
-are fetched and dated commitments parsed out. Google News queries are used for
-reach, but their links are a JavaScript shell rather than an article, so those
-only ever become leads for a human to open.
+## What is not built yet
 
-**`/api/cron/alerts`** (03:00 daily) finds promises whose deadline has passed
-with no verified proof, and composes two notices: one to the official who is
-answerable, one to whoever logged or is following it.
+Honest list, because a README that only describes the good parts is not much of
+a record either:
 
-### Before you turn alerts on
+- No accounts. `/review` is gated by a shared token, which is thin and says so.
+- No one-click accept in the review queue; promotion is done in the database.
+- Watcher confirmation emails are not sent, so double opt-in is incomplete.
+- No official has a verified contact address, so every breach notice currently
+  suppresses itself. That is correct behaviour, not a bug: addresses are never
+  guessed.
+- Sub-district and village coverage is limited to places already on the
+  register. The LGD and UDISE import path is documented but unwritten.
+- Seconding a complaint and corroborating a proof are not wired up.
+- **No test suite.** `npm run check:extract` covers the deadline parser and
+  nothing else.
 
-This sends email to real people in your name. It is off by default and the sweep
-runs indefinitely as a dry run, recording every notice it *would* have sent.
+---
 
-```bash
-curl -s "$SITE/api/cron/alerts?preview=1" -H "Authorization: Bearer $CRON_SECRET"
-```
+## Contributing
 
-Read several runs of that first. Then `ALERTS_ENABLED=true` starts mail to
-watchers; `ALERTS_NOTIFY_AUTHORITIES=true` is a *separate* switch for notices to
-officials, because those two risks are not the same size. No address is ever
-guessed — an official without a verified `email` is skipped and the alert row
-records why. A unique index enforces one notice per promise per kind per
-audience, forever.
+The editorial standards matter more than the code style here. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for what counts as a promise, how sourcing
+works, and the rules about naming individuals.
 
-## Location data
+## Licence
 
-`src/data/geo/states.ts` carries all 36 states and UTs with their districts.
-Below district it is deliberately partial — India has roughly 7,000 blocks and
-640,000 villages, and UDISE+ lists about 1.5 million schools, none of which
-belongs in a bundle. The picker treats an unknown place as completely normal and
-lets you type it, because a register that refuses to record a promise made in a
-village it has not heard of is useless exactly where it is needed most.
+[MIT](LICENSE) for the code.
 
-The district list is a hand-maintained snapshot and should be verified against
-the Local Government Directory before anyone relies on it for reporting;
-boundaries change often. Supplying a UDISE code on a school promise is the single
-most useful thing a submitter can do, because it makes the row joinable to
-official enrolment and infrastructure data.
-
-## Things worth knowing before changing anything
-
-- **The status engine takes `now` as an argument.** Never call `Date.now()`
-  inside it. Server components read the clock once per request and thread the
-  value through; client countdowns are seeded with the server's value so the
-  first client render matches and hydration stays quiet.
-- **A red tile is a claim about evidence, not about a person.** The wording
-  throughout says "the deadline passed with no verified proof". Keep it that way.
-- **`deadline` and `deadlineLabel` are both null or both set.** The database
-  enforces this. A date with no quoted wording cannot be defended later.
-- **Nothing public can write to `commitments`.** RLS gives the anon key SELECT
-  everywhere plus INSERT into `proofs`, `complaints` and `submissions` only, and
-  the `WITH CHECK` clauses pin those inserts to their pending states. There is no
-  UPDATE or DELETE policy on any table at all.
-- **Progress bars move on accepted evidence, never on an announcement.**
-- **Receipts and proofs answer different questions.** A receipt shows the
-  promise *was made*; a proof shows whether it was *kept*. Officials contest the
-  first one first, which is why the UI is loud about a receipt that is a bare
-  link with no archived screenshot behind it.
-- **Nothing the ingestion pipeline finds publishes itself.** Candidates go to a
-  queue; a human promotes them. Do not add an auto-publish path.
-- `react-hooks/purity` is switched off for `src/app/**/page.tsx` only, because
-  reading the clock is the entire job of those files. Client components are not
-  exempt.
-
-## Verify before claiming done
-
-```bash
-npm run typecheck
-npm run lint
-npm run build
-```
+The register content is compiled from published sources, each linked on its own
+entry. It is offered for public accountability and journalism. If an entry about
+you is wrong, file a complaint against it in the app and it will be checked
+against its sources.
