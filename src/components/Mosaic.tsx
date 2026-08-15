@@ -41,22 +41,26 @@ export function Mosaic({
         const style = BAND_STYLE[item.band];
         const area = w * h;
         const showLabel = area >= minLabelArea && w > 11 && h > 9;
-        const showSub = area >= minLabelArea * 3.2 && h > 16 && !!item.sublabel;
+        // The sublabel needs a tile with room to spare; on anything smaller the
+        // title alone is the useful thing.
+        const showSub = !!item.sublabel && area >= minLabelArea * 3.2;
 
         const inner = (
           <>
             {showLabel && (
-              <span className="pointer-events-none absolute inset-0 flex flex-col justify-start gap-0.5 p-1.5 sm:p-2">
+              <span className="pointer-events-none absolute inset-0 flex flex-col justify-start p-1.5 sm:p-2">
                 <span
-                  className="text-[0.6rem] font-semibold leading-tight sm:text-[0.7rem]"
-                  style={{ color: style.on }}
+                  className="tile-label clamp font-semibold tracking-[-0.005em]"
+                  style={
+                    { color: style.on, '--lines': showSub ? 3 : 4 } as React.CSSProperties
+                  }
                 >
                   {item.label}
                 </span>
                 {showSub && (
                   <span
-                    className="text-[0.58rem] leading-tight opacity-80 sm:text-[0.63rem]"
-                    style={{ color: style.on }}
+                    className="tile-sub clamp mt-0.5 opacity-75"
+                    style={{ color: style.on, '--lines': 1 } as React.CSSProperties}
                   >
                     {item.sublabel}
                   </span>

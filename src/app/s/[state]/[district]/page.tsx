@@ -6,7 +6,9 @@ import { rollUp, scorecard, BAND_STYLE, CATEGORY_LABEL } from '@/lib/status';
 import { formatCount, formatDate } from '@/lib/format';
 import { Mosaic, type MosaicItem } from '@/components/Mosaic';
 import { CommitmentRow } from '@/components/CommitmentRow';
-import { Card, Legend, SectionHeading, StatTile, Empty } from '@/components/ui';
+import { Card, Legend, SectionHeading, Empty } from '@/components/ui';
+import { StatRibbon } from '@/components/KeyNumbers';
+import { officialSlug } from '@/lib/authority';
 
 export const revalidate = 60;
 
@@ -82,74 +84,49 @@ export default async function DistrictPage({
         <span className="text-ink-2">{district.name}</span>
       </nav>
 
-      <header className="max-w-3xl">
+      <header className="max-w-4xl">
         <p className="eyebrow">{state.name} · district register</p>
-        <h1 className="display mt-2 text-[2.3rem] leading-tight sm:text-[2.9rem]">
+        <h1 className="display mt-2 text-[2.1rem] leading-tight sm:text-[2.7rem]">
           {district.name}
         </h1>
-        <p className="mt-3 text-[0.98rem] leading-relaxed text-ink-2">
+        <p className="mt-2 text-[0.92rem] leading-snug text-ink-2">
           {district.live} promise{district.live === 1 ? '' : 's'} logged here. Every
-          tile is one commitment; its colour is how much of the promised window has
-          already been spent.
+          tile below is one commitment; its colour is how much of the promised
+          window has already been spent.
         </p>
       </header>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,380px)_1fr]">
-        <div>
-          <Card className="overflow-hidden">
-            <div className="aspect-square p-1.5">
-              <Mosaic items={items} minLabelArea={30} />
-            </div>
-          </Card>
-          <div className="mt-3 rounded-xl border bg-surface px-4 py-3">
-            <Legend />
-          </div>
+      <div className="mt-3 border-y py-2">
+        <StatRibbon
+          items={[
+            { value: score.total, label: 'tracked' },
+            { value: score.kept, label: 'kept', tone: BAND_STYLE.kept.softOn },
+            { value: score.broken, label: 'missed', tone: BAND_STYLE.broken.softOn },
+            { value: score.running, label: 'running', tone: BAND_STYLE.soon.softOn },
+            {
+              value: score.undated + score.unanswered,
+              label: 'no date given',
+              tone: BAND_STYLE.undated.softOn,
+            },
+            { value: score.dueIn48h, label: 'due in 48h', tone: BAND_STYLE.urgent.softOn },
+          ]}
+        />
+      </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-2.5">
-            <StatTile label="Kept" value={score.kept} accent={BAND_STYLE.kept.softOn} />
-            <StatTile
-              label="Missed"
-              value={score.broken}
-              accent={BAND_STYLE.broken.softOn}
-            />
-            <StatTile
-              label="Running"
-              value={score.running}
-              accent={BAND_STYLE.soon.softOn}
-            />
-            <StatTile
-              label="Undated"
-              value={score.undated + score.unanswered}
-              accent={BAND_STYLE.undated.softOn}
-            />
-          </div>
-
-          {officials.length > 0 && (
-            <Card className="mt-3 overflow-hidden">
-              <p className="eyebrow border-b bg-surface-2 px-4 py-2.5">
-                Answerable here
-              </p>
-              <ul className="divide-y">
-                {officials.map((o) => (
-                  <li key={o.name} className="px-4 py-2.5">
-                    <p className="text-[0.85rem] font-medium">{o.name}</p>
-                    <p className="text-[0.73rem] text-ink-3">
-                      {o.role}
-                      {o.body ? ` · ${o.body}` : ''}
-                    </p>
-                    {o.handle && (
-                      <p className="mt-0.5 font-mono text-[0.72rem] text-[var(--brand-ink)]">
-                        {o.handle}
-                      </p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
+      {/* The map, immediately — full width so tiles are large enough to read
+          without hovering, which is the whole point at district level. */}
+      <Card className="mt-4 overflow-hidden">
+        <div className="aspect-[16/7] p-1.5 sm:aspect-[16/6]">
+          <Mosaic items={items} minLabelArea={22} />
         </div>
+      </Card>
 
-        <div className="min-w-0">
+      <div className="mt-3">
+        <Legend compact />
+      </div>
+
+      <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_minmax(0,340px)]">
+        <div className="min-w-0 lg:order-1">
           <SectionHeading eyebrow="The record" title="Promises made here" />
           <ul className="space-y-2.5">
             {district.commitments.map((c) => (
@@ -194,6 +171,37 @@ export default async function DistrictPage({
             )}
           </section>
         </div>
+
+        {officials.length > 0 && (
+          <aside className="lg:order-2 lg:sticky lg:top-20 lg:self-start">
+            <Card className="overflow-hidden">
+              <p className="eyebrow border-b bg-surface-2 px-4 py-2.5">
+                Answerable here
+              </p>
+              <ul className="divide-y">
+                {officials.map((o) => (
+                  <li key={o.name} className="px-4 py-2.5">
+                    <Link
+                      href={`/authority/${officialSlug(o)}`}
+                      className="text-[0.88rem] font-semibold hover:underline"
+                    >
+                      {o.name}
+                    </Link>
+                    <p className="text-[0.73rem] text-ink-3">
+                      {o.role}
+                      {o.body ? ` · ${o.body}` : ''}
+                    </p>
+                    {o.handle && (
+                      <p className="mt-0.5 font-mono text-[0.72rem] text-[var(--brand-ink)]">
+                        {o.handle}
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </aside>
+        )}
       </div>
     </div>
   );

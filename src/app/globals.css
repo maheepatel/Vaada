@@ -217,6 +217,32 @@ body {
   transition:
     filter 140ms ease,
     transform 140ms ease;
+  /*
+    Each tile is its own size container, so the label inside can be sized in
+    `cqh`/`cqw` — percentages of *this tile*, not of the page.
+
+    This replaced a heuristic that guessed how many lines would fit from the
+    tile's height as a percentage of the mosaic. That guess was calibrated
+    against a 5:4 container and broke immediately on the 16:7 district map,
+    slicing titles through the middle of their last line. Sizing the text to the
+    tile means a fixed line count always fits, whatever shape the container is.
+  */
+  container-type: size;
+}
+
+/*
+  Font scales with the tile, bounded at both ends: `min()` respects whichever of
+  height or width is the real constraint on a long word, and `clamp()` stops a
+  huge tile shouting or a sliver becoming illegible.
+*/
+.tile-label {
+  font-size: clamp(0.56rem, min(9.5cqh, 6.5cqw), 0.95rem);
+  line-height: 1.16;
+}
+
+.tile-sub {
+  font-size: clamp(0.5rem, min(6.5cqh, 4.6cqw), 0.72rem);
+  line-height: 1.2;
 }
 
 .mosaic-tile:hover,
@@ -252,6 +278,30 @@ body {
     transparent 1.2px
   );
   background-size: 7px 7px;
+}
+
+/*
+  Line clamping for mosaic labels.
+
+  Tiles have `overflow: hidden`, which on its own slices a title straight
+  through a word and leaves half a letter against the edge. Clamping ends the
+  text cleanly with an ellipsis instead, and the line count is set per tile from
+  its height so a tall tile shows four lines and a short one shows one.
+*/
+.clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--lines, 2);
+  line-clamp: var(--lines, 2);
+  overflow: hidden;
+  /*
+    `break-word`, not `anywhere`. Both stop a long word overflowing the tile,
+    but `anywhere` breaks eagerly and produced "playgroun / d for the…" on a
+    tile that had room to wrap normally. `break-word` only splits a word when it
+    genuinely cannot fit on a line of its own.
+  */
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 /* The bar that runs along the bottom edge of a tile showing verified progress. */

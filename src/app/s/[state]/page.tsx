@@ -6,7 +6,8 @@ import { rollUp, scorecard, BAND_STYLE } from '@/lib/status';
 import { formatCount, percent } from '@/lib/format';
 import { Mosaic, type MosaicItem } from '@/components/Mosaic';
 import { CommitmentRow } from '@/components/CommitmentRow';
-import { Card, Legend, SectionHeading, StatTile } from '@/components/ui';
+import { Card, Legend, SectionHeading } from '@/components/ui';
+import { StatRibbon } from '@/components/KeyNumbers';
 import type { DistrictRollup } from '@/lib/types';
 
 export const revalidate = 60;
@@ -50,54 +51,56 @@ export default async function StatePage({ params }: PageProps<'/s/[state]'>) {
         <span className="text-ink-2">{state.name}</span>
       </nav>
 
-      <header className="max-w-3xl">
+      <header className="max-w-4xl">
         <p className="eyebrow">State register</p>
-        <h1 className="display mt-2 text-[2.3rem] leading-tight sm:text-[2.9rem]">
+        <h1 className="display mt-2 text-[2.1rem] leading-tight sm:text-[2.7rem]">
           {state.name}
         </h1>
-        <p className="mt-3 text-[0.98rem] leading-relaxed text-ink-2">
-          {state.live} promises logged across {state.districts.length} district
+        <p className="mt-2 text-[0.92rem] leading-snug text-ink-2">
+          {state.live} promises across {state.districts.length} district
           {state.districts.length === 1 ? '' : 's'}
-          {affected > 0 ? `, affecting about ${formatCount(affected)} people` : ''}. Each
-          box below is one district; click into it for the full record.
+          {affected > 0 ? `, affecting about ${formatCount(affected)} people` : ''}. One
+          box per district — click into it for the full record.
         </p>
       </header>
 
-      <div className="mt-7 grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-5">
-        <StatTile label="Tracked" value={score.total} />
-        <StatTile label="Kept" value={score.kept} accent={BAND_STYLE.kept.softOn} />
-        <StatTile
-          label="Missed"
-          value={score.broken}
-          accent={BAND_STYLE.broken.softOn}
-        />
-        <StatTile
-          label="Undated"
-          value={score.undated + score.unanswered}
-          accent={BAND_STYLE.undated.softOn}
-        />
-        <StatTile
-          label="Kept rate"
-          value={
-            score.kept + score.broken + score.disputed > 0
-              ? percent(score.keptRate)
-              : '—'
-          }
-          hint="of decided promises"
+      {/* Counts as a single thin line, so the district boxes stay directly
+          under the title rather than being pushed down by a block of tiles. */}
+      <div className="mt-3 border-y py-2">
+        <StatRibbon
+          items={[
+            { value: score.total, label: 'tracked' },
+            { value: score.kept, label: 'kept', tone: BAND_STYLE.kept.softOn },
+            { value: score.broken, label: 'missed', tone: BAND_STYLE.broken.softOn },
+            {
+              value: score.undated + score.unanswered,
+              label: 'no date given',
+              tone: BAND_STYLE.undated.softOn,
+            },
+            { value: score.dueIn48h, label: 'due in 48h', tone: BAND_STYLE.urgent.softOn },
+            {
+              value:
+                score.kept + score.broken + score.disputed > 0
+                  ? percent(score.keptRate)
+                  : '—',
+              label: 'kept rate',
+            },
+          ]}
         />
       </div>
 
-      <div className="my-8 rounded-xl border bg-surface px-4 py-3">
-        <Legend />
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* The map, immediately. */}
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {state.districts.map((d) => (
           <DistrictBox key={d.slug} district={d} stateSlug={state.slug} />
         ))}
       </div>
 
-      <section className="mt-16">
+      <div className="mt-3">
+        <Legend compact />
+      </div>
+
+      <section className="mt-14">
         <SectionHeading
           eyebrow="Full list"
           title={`Every promise in ${state.name}`}
@@ -135,31 +138,31 @@ function DistrictBox({
     <Card className="overflow-hidden">
       <Link
         href={`/s/${stateSlug}/${district.slug}`}
-        className="flex items-start justify-between gap-3 border-b px-4 py-3 transition-colors hover:bg-surface-2"
+        className="flex items-start justify-between gap-2 border-b px-3.5 py-2.5 transition-colors hover:bg-surface-2"
       >
         <div className="min-w-0">
-          <h3 className="text-[1.05rem] font-semibold leading-tight">
+          <h3 className="text-[0.98rem] font-semibold leading-tight">
             {district.name}
           </h3>
-          <p className="mt-0.5 text-[0.75rem] text-ink-3">
+          <p className="mt-0.5 truncate text-[0.72rem] text-ink-3">
             {district.live} promise{district.live === 1 ? '' : 's'} ·{' '}
             {district.commitments[0]?.locality}
           </p>
         </div>
-        <span className="shrink-0 pt-0.5 text-[0.75rem] font-semibold text-ink-3">→</span>
+        <span className="shrink-0 pt-0.5 text-[0.72rem] font-semibold text-ink-3">→</span>
       </Link>
 
-      <div className="aspect-square p-1.5">
+      <div className="aspect-[5/4] p-1.5">
         <Mosaic items={items} />
       </div>
 
-      <div className="flex items-center gap-3 border-t px-4 py-2.5 text-[0.72rem] font-medium">
+      <div className="flex items-center gap-2.5 border-t px-3.5 py-2 text-[0.7rem] font-medium">
         <span style={{ color: BAND_STYLE.kept.softOn }}>{district.kept} kept</span>
         <span style={{ color: BAND_STYLE.broken.softOn }}>
           {district.broken} missed
         </span>
-        <span className="ml-auto text-ink-3">
-          worst: {BAND_STYLE[district.band].label}
+        <span className="ml-auto truncate text-ink-3">
+          {BAND_STYLE[district.band].label}
         </span>
       </div>
     </Card>
