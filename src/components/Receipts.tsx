@@ -1,5 +1,6 @@
 import { Card } from './ui';
 import { formatDate } from '@/lib/format';
+import { waybackUrl, waybackSaveUrl, isFragile, hostOf } from '@/lib/archive';
 import type { Receipt, ReceiptKind } from '@/lib/types';
 
 const KIND_LABEL: Record<ReceiptKind, string> = {
@@ -185,14 +186,39 @@ function ReceiptCard({ receipt: r }: { receipt: Receipt }) {
 
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.72rem] text-ink-3">
             {r.url && (
-              <a
-                href={r.url}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-                className="font-semibold text-[var(--brand-ink)] hover:underline"
-              >
-                Open the original ↗
-              </a>
+              <>
+                <a
+                  href={r.url}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="font-semibold text-[var(--brand-ink)] hover:underline"
+                >
+                  Original on {hostOf(r.url)} ↗
+                </a>
+                {/* The second link is the point: a reader can still check the
+                    claim after the original is taken down, which is exactly
+                    when it matters most. */}
+                <a
+                  href={waybackUrl(r.url)}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="font-medium hover:text-ink hover:underline"
+                >
+                  Archived copy ↗
+                </a>
+                {isFragile(r.url) && r.mediaUrls.length === 0 && (
+                  <a
+                    href={waybackSaveUrl(r.url)}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className="font-semibold hover:underline"
+                    style={{ color: 'var(--band-urgent-ink)' }}
+                    title="This is a social post with no screenshot held here. One click preserves it."
+                  >
+                    Archive it now
+                  </a>
+                )}
+              </>
             )}
             <span>{KIND_WEIGHT[r.kind]}</span>
             <span className="ml-auto">added by {r.addedBy}</span>

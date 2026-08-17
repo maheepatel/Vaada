@@ -10,9 +10,11 @@ import {
   bandTexture,
 } from '@/lib/status';
 import { formatDate, formatDateTime, formatCount, roughDuration } from '@/lib/format';
+import { waybackUrl, hostOf } from '@/lib/archive';
 import { Countdown } from '@/components/Countdown';
 import { ProofForm } from '@/components/ProofForm';
 import { Receipts } from '@/components/Receipts';
+import { ReceiptForm } from '@/components/ReceiptForm';
 import { AccountablePanel } from '@/components/AccountablePanel';
 import { WatchForm } from '@/components/WatchForm';
 import { BandChip, Card, ProgressBar, SectionHeading, Empty } from '@/components/ui';
@@ -216,7 +218,10 @@ export default async function PromisePage({ params }: PageProps<'/p/[slug]'>) {
               screenshot is what makes &ldquo;I never said three months&rdquo;
               unarguable.
             </SectionHeading>
-            <Receipts receipts={myReceipts} />
+            <div className="space-y-3">
+              <Receipts receipts={myReceipts} />
+              <ReceiptForm commitmentId={c.id} />
+            </div>
           </section>
 
           <section>
@@ -476,6 +481,44 @@ function Timeline({ events }: { events: TimelineEvent[] }) {
           <p className="mt-0.5 text-[0.92rem] font-semibold leading-snug">{e.label}</p>
           {e.detail && (
             <p className="mt-1 text-[0.83rem] leading-relaxed text-ink-2">{e.detail}</p>
+          )}
+
+          {/* Evidence per step, so the trail is checkable entry by entry
+              rather than only at the top of the page. */}
+          {e.mediaUrls && e.mediaUrls.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {e.mediaUrls.map((u) => (
+                <a key={u} href={u} target="_blank" rel="noopener noreferrer">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={u}
+                    alt={e.label}
+                    className="h-20 w-20 rounded-lg border object-cover transition-opacity hover:opacity-85"
+                  />
+                </a>
+              ))}
+            </div>
+          )}
+
+          {e.sourceUrl && (
+            <p className="mt-1.5 flex flex-wrap gap-x-3 text-[0.72rem]">
+              <a
+                href={e.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="font-semibold text-[var(--brand-ink)] hover:underline"
+              >
+                Source on {hostOf(e.sourceUrl)} ↗
+              </a>
+              <a
+                href={waybackUrl(e.sourceUrl)}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="text-ink-3 hover:text-ink hover:underline"
+              >
+                Archived ↗
+              </a>
+            </p>
           )}
         </li>
       ))}

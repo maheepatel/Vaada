@@ -917,6 +917,129 @@ export const COMMITMENTS: Commitment[] = [
     updatedAt: '2026-07-26T10:00:00+05:30',
   },
 
+  // ===== Uttar Pradesh · Hamirpur =========================================
+  {
+    id: 'up-hamirpur-chandpur-road',
+    slug: 'hamirpur-concrete-road-to-schools',
+    title: 'Build a concrete road to the three riverside schools',
+    detail:
+      'Children from Gangwa Ka Dera, Bachichi Ka Dera and Chandupur, on the banks of the Yamuna, marched to the district collectorate on 12 August carrying banners reading “from muddy road to concrete road”. The earthen track dissolves in the monsoon and children have dropped out over it. The District Magistrate said the No Objection Certificate had been received and the proposal submitted.',
+    state: 'Uttar Pradesh',
+    stateSlug: 'uttar-pradesh',
+    district: 'Hamirpur',
+    districtSlug: 'hamirpur',
+    locality: 'Gangwa Ka Dera, Bachichi Ka Dera and Chandupur',
+    village: 'Chandupur',
+    category: 'infrastructure',
+    status: 'promised',
+    promisedOn: '2026-08-12T13:00:00+05:30',
+    // "October or November" is a range, so the clock runs to the end of the
+    // later month. Anything earlier would be marking it broken on a date the
+    // official never actually gave.
+    deadline: '2026-11-30T23:59:00+05:30',
+    deadlineLabel: 'approval by October or November',
+    progress: 15,
+    weight: 4,
+    beneficiaries: null,
+    accountable: [
+      {
+        name: 'Abhishek Goyal',
+        role: 'District Magistrate, Hamirpur',
+        body: 'Hamirpur district administration, Uttar Pradesh',
+      },
+    ],
+    demandedBy: 'Primary school children of three villages, with parents and villagers',
+    sources: [
+      {
+        kind: 'news',
+        publisher: 'ThePrint',
+        url: 'https://theprint.in/feature/hamirpur-school-students-march-to-dms-office-we-want-a-road/3012716/',
+        date: '2026-08-12',
+        quote:
+          'approval will come by October or November; we can start working on it after that',
+      },
+    ],
+    timeline: [
+      {
+        at: '2026-08-12T11:00:00+05:30',
+        kind: 'demand',
+        label: 'Children march to the district collectorate',
+        detail:
+          'Banners read “from muddy road to concrete road”. One protester: “Road ke wajah se humari padhai chor di hai.”',
+        sourceUrl:
+          'https://theprint.in/feature/hamirpur-school-students-march-to-dms-office-we-want-a-road/3012716/',
+      },
+      {
+        at: '2026-08-12T13:00:00+05:30',
+        kind: 'promise',
+        label: 'District Magistrate confirms NOC received and proposal submitted',
+        detail:
+          'Abhishek Goyal said the road would cut 9 km off the journey to school, and that approval would come by October or November.',
+        sourceUrl:
+          'https://theprint.in/feature/hamirpur-school-students-march-to-dms-office-we-want-a-road/3012716/',
+      },
+    ],
+    updatedAt: '2026-08-12T13:00:00+05:30',
+  },
+
+  // ===== Maharashtra · Hingoli ============================================
+  {
+    id: 'mah-hingoli-santuk-pimpri',
+    slug: 'santuk-pimpri-toilets-windows-benches',
+    title: 'Restore water to the toilets, fix the windows, supply benches',
+    detail:
+      'The Zilla Parishad school at Santuk Pimpri has toilets with no water supply, several broken windows, and four benches for a roll far larger than that. Documented on 15 August 2026 at the launch of the School Thik Karo campaign. No official has been recorded committing to a fix or a date.',
+    state: 'Maharashtra',
+    stateSlug: 'maharashtra',
+    district: 'Hingoli',
+    districtSlug: 'hingoli',
+    locality: 'Santuk Pimpri',
+    village: 'Santuk Pimpri',
+    school: 'Zilla Parishad School, Santuk Pimpri',
+    category: 'water',
+    status: 'unanswered',
+    promisedOn: '2026-08-15T11:00:00+05:30',
+    deadline: null,
+    deadlineLabel: null,
+    progress: 0,
+    weight: 3,
+    beneficiaries: null,
+    accountable: [
+      {
+        name: 'Sarpanch, Santuk Pimpri Gram Panchayat',
+        role: 'Sarpanch',
+        body: 'Santuk Pimpri Gram Panchayat, Hingoli',
+      },
+      {
+        name: 'CEO, Zilla Parishad Hingoli',
+        role: 'Chief Executive Officer',
+        body: 'Hingoli Zilla Parishad',
+      },
+    ],
+    demandedBy: 'CJP School Thik Karo campaign and the school’s parents',
+    sources: [
+      {
+        kind: 'news',
+        publisher: 'The Federal',
+        url: 'https://thefederal.com/category/states/west/maharashtra/cjp-launches-school-thik-karo-campaign-demands-private-school-fee-cap-253661',
+        date: '2026-08-15',
+        quote: 'only four benches while the number of students is more',
+      },
+    ],
+    timeline: [
+      {
+        at: '2026-08-15T11:00:00+05:30',
+        kind: 'demand',
+        label: 'Conditions documented at the campaign launch',
+        detail:
+          'Toilets without water supply, broken windows, and four benches for the whole school.',
+        sourceUrl:
+          'https://thefederal.com/category/states/west/maharashtra/cjp-launches-school-thik-karo-campaign-demands-private-school-fee-cap-253661',
+      },
+    ],
+    updatedAt: '2026-08-15T11:00:00+05:30',
+  },
+
   // ===== Jharkhand · Ranchi ===============================================
   {
     id: 'jha-ranchi-cancel-jpsc',
@@ -1170,6 +1293,37 @@ export const RECEIPTS: Receipt[] = [
     documentDate: '2026-08-02',
     signed: false,
     quote: 'promised four fans per classroom, electrical repairs, furniture within one month',
+    addedBy: 'Founding register',
+    verified: true,
+  },
+  {
+    id: 'rcpt-hamirpur-print',
+    commitmentId: 'up-hamirpur-chandpur-road',
+    kind: 'press_report',
+    title: 'ThePrint report of the march and the District Magistrate’s response',
+    description:
+      'Carries the DM by name, the NOC status, the 9 km the road would save, and the approval window he gave.',
+    mediaUrls: [],
+    url: 'https://theprint.in/feature/hamirpur-school-students-march-to-dms-office-we-want-a-road/3012716/',
+    documentDate: '2026-08-12',
+    signed: false,
+    quote:
+      'approval will come by October or November; we can start working on it after that',
+    addedBy: 'Founding register',
+    verified: true,
+  },
+  {
+    id: 'rcpt-santuk-pimpri-federal',
+    commitmentId: 'mah-hingoli-santuk-pimpri',
+    kind: 'press_report',
+    title: 'The Federal report on the Santuk Pimpri school',
+    description:
+      'Independent record of the conditions. Note there is no official commitment in it, which is why this row is logged as unanswered rather than as a promise.',
+    mediaUrls: [],
+    url: 'https://thefederal.com/category/states/west/maharashtra/cjp-launches-school-thik-karo-campaign-demands-private-school-fee-cap-253661',
+    documentDate: '2026-08-15',
+    signed: false,
+    quote: 'only four benches while the number of students is more',
     addedBy: 'Founding register',
     verified: true,
   },

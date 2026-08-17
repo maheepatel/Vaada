@@ -170,12 +170,20 @@ export interface Complaint {
   respondedAt?: string;
 }
 
-/** A single logged change in a commitment's life — the audit trail. */
+/** A single logged change in a commitment's life. The audit trail. */
 export interface TimelineEvent {
   at: string;
   label: string;
   detail?: string;
   kind: 'demand' | 'promise' | 'progress' | 'proof' | 'breach' | 'response';
+  /**
+   * Images or scans backing this specific step, so the audit trail is
+   * evidenced entry by entry rather than only at the top of the page. A
+   * timeline nobody can check is just a story with dates on it.
+   */
+  mediaUrls?: string[];
+  /** Where this step is documented, if it has its own source. */
+  sourceUrl?: string;
 }
 
 export interface Commitment {
