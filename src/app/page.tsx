@@ -51,7 +51,7 @@ export default async function HomePage() {
             nobody could show the work was done.
           </p>
           <Link
-            href="/scoreboard"
+            href="/rankings"
             className="shrink-0 text-[0.78rem] font-semibold text-[var(--brand-ink)] hover:underline"
           >
             State &amp; district rankings →
@@ -93,7 +93,7 @@ export default async function HomePage() {
                   live.reduce((s, c) => s + (c.beneficiaries ?? 0), 0),
                 ),
                 label: 'people affected',
-                href: '/scoreboard',
+                href: '/rankings',
               },
             ]}
           />

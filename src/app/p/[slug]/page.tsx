@@ -18,7 +18,7 @@ import { ReceiptForm } from '@/components/ReceiptForm';
 import { AccountablePanel } from '@/components/AccountablePanel';
 import { WatchForm } from '@/components/WatchForm';
 import { BandChip, Card, ProgressBar, SectionHeading, Empty } from '@/components/ui';
-import type { Proof, TimelineEvent } from '@/lib/types';
+import type { Proof, Source, TimelineEvent } from '@/lib/types';
 
 export const revalidate = 60;
 
@@ -195,6 +195,10 @@ export default async function PromisePage({ params }: PageProps<'/p/[slug]'>) {
         </div>
       </div>
 
+      {/* Where this claim comes from, directly under the claim itself. A reader
+          asking "says who?" should not have to hunt for the answer. */}
+      <SourceStrip sources={c.sources} />
+
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_minmax(0,360px)]">
         {/* ===== Left: the record ===== */}
         <div className="min-w-0 space-y-10">
@@ -210,14 +214,7 @@ export default async function PromisePage({ params }: PageProps<'/p/[slug]'>) {
           </section>
 
           <section>
-            <SectionHeading
-              eyebrow="The receipt"
-              title="Proof this was actually promised"
-            >
-              The half officials contest first. A signed order or an archived
-              screenshot is what makes &ldquo;I never said three months&rdquo;
-              unarguable.
-            </SectionHeading>
+            <SectionHeading eyebrow="The receipt" title="Proof this was promised" />
             <div className="space-y-3">
               <Receipts receipts={myReceipts} />
               <ReceiptForm commitmentId={c.id} />
@@ -227,10 +224,9 @@ export default async function PromisePage({ params }: PageProps<'/p/[slug]'>) {
           <section>
             <SectionHeading
               eyebrow="Verified progress"
-              title={`${c.progress}% of the work has been confirmed`}
+              title={`${c.progress}% confirmed`}
             >
-              This bar moves only when a volunteer accepts a piece of evidence. An
-              official saying the work is done does not move it.
+              Moves only when a volunteer accepts evidence.
             </SectionHeading>
             <Card className="p-5">
               <ProgressBar value={c.progress} band={c.band} showLabel={false} />
@@ -262,14 +258,7 @@ export default async function PromisePage({ params }: PageProps<'/p/[slug]'>) {
           </section>
 
           <section>
-            <SectionHeading
-              eyebrow="From the ground"
-              title="Evidence"
-            >
-              Anything a resident, volunteer or reporter sent in. Nothing is taken
-              on trust. Every item carries who sent it and whether it has been
-              checked.
-            </SectionHeading>
+            <SectionHeading eyebrow="From the ground" title="Evidence" />
 
             <div className="space-y-3">
               {myProofs.length === 0 ? (
@@ -332,31 +321,6 @@ export default async function PromisePage({ params }: PageProps<'/p/[slug]'>) {
 
           <WatchForm commitmentId={c.id} deadline={c.deadline} />
 
-          <Card className="overflow-hidden">
-            <p className="eyebrow border-b bg-surface-2 px-4 py-2.5">Sources</p>
-            <ul className="divide-y">
-              {c.sources.map((s) => (
-                <li key={s.url} className="px-4 py-3">
-                  <a
-                    href={s.url}
-                    target="_blank"
-                    rel="noopener noreferrer nofollow"
-                    className="text-[0.85rem] font-semibold text-[var(--brand-ink)] hover:underline"
-                  >
-                    {s.publisher} ↗
-                  </a>
-                  <p className="mt-0.5 text-[0.72rem] uppercase tracking-wide text-ink-3">
-                    {s.kind} · {formatDate(s.date)}
-                  </p>
-                  {s.quote && (
-                    <blockquote className="mt-2 border-l-2 pl-2.5 text-[0.8rem] leading-relaxed text-ink-2">
-                      “{s.quote}”
-                    </blockquote>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </Card>
 
           <Card className="p-4">
             <p className="eyebrow">Something wrong here?</p>
@@ -379,6 +343,57 @@ export default async function PromisePage({ params }: PageProps<'/p/[slug]'>) {
           </p>
         </aside>
       </div>
+    </div>
+  );
+}
+
+/**
+ * "Says who?", answered immediately under the claim.
+ *
+ * This used to be the third card down a sidebar, which is the wrong place for
+ * the single thing that makes the entry believable. A reader looking at a red
+ * box saying an official missed a deadline needs the source in the same glance,
+ * not after a scroll.
+ */
+function SourceStrip({ sources }: { sources: Source[] }) {
+  if (sources.length === 0) return null;
+
+  return (
+    <div className="mt-2.5 rounded-xl border bg-surface px-4 py-3">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
+        <span className="eyebrow shrink-0">Source</span>
+        {sources.map((s) => (
+          <span key={s.url} className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <a
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="text-[0.86rem] font-semibold text-[var(--brand-ink)] hover:underline"
+            >
+              {s.publisher}
+            </a>
+            <span className="text-[0.75rem] text-ink-3">{formatDate(s.date)}</span>
+            <a
+              href={waybackUrl(s.url)}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="text-[0.75rem] text-ink-3 hover:text-ink hover:underline"
+            >
+              archived
+            </a>
+          </span>
+        ))}
+      </div>
+
+      {/* The verbatim wording, which is what actually gets disputed. */}
+      {sources.find((s) => s.quote) && (
+        <blockquote
+          className="mt-2 border-l-2 pl-3 text-[0.88rem] leading-relaxed text-ink"
+          style={{ borderColor: 'var(--band-kept)' }}
+        >
+          “{sources.find((s) => s.quote)?.quote}”
+        </blockquote>
+      )}
     </div>
   );
 }

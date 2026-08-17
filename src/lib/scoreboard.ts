@@ -156,16 +156,26 @@ function scoreFor(items: LiveCommitment[], name: string, slug: string, href: str
 }
 
 /**
- * Ranked best-first. Fully-ranked places come first; provisional ones follow,
- * so a district with one kept promise can never sit above a state with nine.
+ * Ranked best-first, by score.
+ *
+ * An earlier version sorted well-evidenced places above provisional ones before
+ * comparing scores at all. That put Rajasthan top of the table on a score of 0,
+ * above Jharkhand on 79, purely because Rajasthan had crossed the threshold for
+ * a third decided promise. Having more evidence promoted the worst performer.
+ *
+ * Confidence is a label, never a sort key. A league table ordered by anything
+ * other than the score is not a league table. Sample size still travels with
+ * each row as the provisional marker, so a reader can discount a thin one.
  */
 function rank(scores: PlaceScore[]): PlaceScore[] {
   return scores.sort((a, b) => {
-    if (a.provisional !== b.provisional) return a.provisional ? 1 : -1;
+    if (a.score === null && b.score === null) return 0;
     if (a.score === null) return 1;
     if (b.score === null) return -1;
     if (b.score !== a.score) return b.score - a.score;
-    // Same score: whoever delivered earlier in their window is ahead.
+
+    // Only once scores tie does the strength of the record break it.
+    if (a.provisional !== b.provisional) return a.provisional ? 1 : -1;
     if (a.speed !== null && b.speed !== null && a.speed !== b.speed) {
       return a.speed - b.speed;
     }

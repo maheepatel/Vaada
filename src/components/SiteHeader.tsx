@@ -19,7 +19,7 @@ export function SiteHeader() {
 
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <Link
-            href="/scoreboard"
+            href="/rankings"
             className="rounded-full border px-3 py-1.5 text-[0.78rem] font-semibold text-ink-2 transition-colors hover:border-line-strong hover:text-ink sm:px-3.5"
           >
             <span className="hidden sm:inline">State &amp; district rankings</span>
