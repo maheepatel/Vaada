@@ -664,3 +664,49 @@ create index if not exists submissions_rate_idx on submissions (user_id, created
 create index if not exists proofs_rate_idx      on proofs (user_id, submitted_at desc);
 create index if not exists complaints_rate_idx  on complaints (user_id, filed_at desc);
 create index if not exists receipts_rate_idx    on receipts (user_id, created_at desc);
+
+-- ------------------------------------------------------- storage volume ----
+--
+-- The bucket already caps each file at 5MB and refuses anything that is not an
+-- image or a PDF, and it requires a session. None of that limits how MANY
+-- files one identity may push. At 20 submissions an hour carrying 12 media
+-- URLs each, a single identity could put 240 objects an hour into a bucket on
+-- a plan whose free tier is one gigabyte — which exhausts storage, and on a
+-- metered plan becomes a bill rather than an outage.
+--
+-- 60 an hour is far more than a person documenting a school will ever attach
+-- and far less than makes filling the bucket practical.
+
+create or replace function enforce_storage_rate() returns trigger
+language plpgsql
+security definer
+set search_path = storage, public
+as $$
+declare
+  recent int;
+begin
+  if new.bucket_id <> 'proof-media' then
+    return new;
+  end if;
+
+  select count(*) into recent
+    from storage.objects
+   where bucket_id = 'proof-media'
+     and owner is not distinct from new.owner
+     and created_at > now() - interval '1 hour';
+
+  if recent >= 60 then
+    raise exception 'Rate limit reached: 60 uploads per hour'
+      using errcode = '54000';
+  end if;
+
+  return new;
+end $$;
+
+drop trigger if exists proof_media_rate on storage.objects;
+create trigger proof_media_rate before insert on storage.objects
+  for each row execute function enforce_storage_rate();
+
+create index if not exists proof_media_owner_idx
+  on storage.objects (owner, created_at desc)
+  where bucket_id = 'proof-media';
