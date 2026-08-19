@@ -406,3 +406,181 @@ create policy "read proof media" on storage.objects
 drop policy if exists "upload proof media" on storage.objects;
 create policy "upload proof media" on storage.objects
   for insert with check (bucket_id = 'proof-media');
+
+-- ========================================================================
+-- v2 — anonymous identity, mandatory proof, and the review promotion path.
+--
+-- Everything below is idempotent, so this file stays a single "run me" script
+-- rather than a chain of migrations. Applying it twice changes nothing.
+-- ========================================================================
+
+-- ------------------------------------------------ submissions, completed ----
+--
+-- These ten columns were written by /api/submit but never existed here, so the
+-- very first real submission would have failed on "column does not exist". The
+-- app never caught it because without credentials the route returns early and
+-- reports success without touching a database.
+
+alter table submissions add column if not exists subdistrict      text;
+alter table submissions add column if not exists village          text;
+alter table submissions add column if not exists school           text;
+alter table submissions add column if not exists udise            text;
+alter table submissions add column if not exists pincode          text;
+alter table submissions add column if not exists receipt_kind     text;
+alter table submissions add column if not exists receipt_signed   boolean not null default false;
+alter table submissions add column if not exists receipt_media    text[] not null default '{}';
+alter table submissions add column if not exists logged_by_name   text;
+alter table submissions add column if not exists logged_by_email  text;
+
+-- --------------------------------------------------- anonymous identity ----
+--
+-- Every visitor gets a real auth.uid() from Supabase anonymous sign-in without
+-- typing anything. That is what makes "my submissions" possible without putting
+-- a signup wall in front of somebody reporting a collapsed classroom.
+--
+-- ON DELETE SET NULL, not CASCADE: if an identity is ever removed, the evidence
+-- must survive it. A register that loses rows when an account goes away is not
+-- a register.
+
+alter table submissions add column if not exists user_id uuid
+  references auth.users (id) on delete set null;
+alter table proofs      add column if not exists user_id uuid
+  references auth.users (id) on delete set null;
+alter table complaints  add column if not exists user_id uuid
+  references auth.users (id) on delete set null;
+alter table receipts    add column if not exists user_id uuid
+  references auth.users (id) on delete set null;
+
+create index if not exists submissions_user_idx on submissions (user_id, created_at desc);
+create index if not exists proofs_user_idx      on proofs (user_id);
+create index if not exists complaints_user_idx  on complaints (user_id);
+
+-- ------------------------------------------------------ mandatory proof ----
+--
+-- A promise logged with nothing behind it is an allegation about a named
+-- official, which is the one thing this register must never publish. Enforced
+-- here as well as in the form and the API route, because the first two can be
+-- bypassed by anyone posting straight at the endpoint and this cannot.
+--
+-- Satisfied by an uploaded image OR any link: post, news story, or document.
+
+do $$ begin
+  alter table submissions add constraint submission_has_proof check (
+    coalesce(array_length(receipt_media, 1), 0) > 0
+    or coalesce(source_url, '') <> ''
+  );
+exception when duplicate_object then null; end $$;
+
+-- -------------------------------------------------------- evidence tier ----
+--
+-- Weight, not a gate. A signed order and a forwarded WhatsApp screenshot are
+-- both admissible; they are not both worth the same. Turning somebody away
+-- because a photograph is all they have would fail exactly the people the
+-- anonymous decision is meant to protect, so the weakest tier is still logged
+-- and simply labelled as what it is.
+--
+-- Generated, so a submitter cannot claim a tier they did not earn.
+
+alter table submissions add column if not exists evidence_tier text
+  generated always as (
+    case
+      when receipt_signed and coalesce(array_length(receipt_media, 1), 0) > 0
+        then 'signed_document'
+      when coalesce(array_length(receipt_media, 1), 0) > 0
+        then 'media'
+      when receipt_kind = 'press_report'   then 'press_link'
+      when receipt_kind = 'written_order'  then 'document_link'
+      when coalesce(source_url, '') <> ''  then 'link_only'
+      else 'none'
+    end
+  ) stored;
+
+-- ---------------------------------------------------------- own-row RLS ----
+--
+-- The queue as a whole stays unreadable: it is unreviewed material naming real
+-- people. A submitter may read their own rows and nothing else, which is what
+-- turns "my logs" into a query instead of a feature.
+
+drop policy if exists "read own submissions" on submissions;
+create policy "read own submissions" on submissions
+  for select using (auth.uid() is not null and user_id = auth.uid());
+
+drop policy if exists "read own proofs" on proofs;
+create policy "read own proofs" on proofs
+  for select using (auth.uid() is not null and user_id = auth.uid());
+
+-- Inserts may only ever be stamped with the caller's own identity. Passing
+-- somebody else's uid is rejected by the check, and passing none is allowed so
+-- the route still works before a session exists.
+
+drop policy if exists "insert queued submissions" on submissions;
+create policy "insert queued submissions" on submissions
+  for insert with check (
+    review_status = 'queued'
+    and reviewed_by is null
+    and (user_id is null or user_id = auth.uid())
+  );
+
+drop policy if exists "insert pending proofs" on proofs;
+create policy "insert pending proofs" on proofs
+  for insert with check (
+    verdict = 'pending'
+    and corroborations = 0
+    and reviewed_by is null
+    and review_note is null
+    and (user_id is null or user_id = auth.uid())
+  );
+
+drop policy if exists "insert open complaints" on complaints;
+create policy "insert open complaints" on complaints
+  for insert with check (
+    status = 'open'
+    and seconded = 0
+    and official_response is null
+    and (user_id is null or user_id = auth.uid())
+  );
+
+drop policy if exists "insert unverified receipts" on receipts;
+create policy "insert unverified receipts" on receipts
+  for insert with check (
+    verified = false
+    and (user_id is null or user_id = auth.uid())
+  );
+
+-- ------------------------------------------------------ storage, tighter ----
+--
+-- The previous upload policy accepted anything from anyone into a public
+-- bucket: any MIME type, any size, unlimited objects. That is a free file host
+-- attached to an accountability register, and it would be found. Uploads are
+-- now restricted to images and small documents, capped, and require a session.
+
+update storage.buckets
+   set public = true,
+       file_size_limit = 5242880,
+       allowed_mime_types = array[
+         'image/jpeg', 'image/png', 'image/webp', 'image/heic', 'application/pdf'
+       ]
+ where id = 'proof-media';
+
+drop policy if exists "upload proof media" on storage.objects;
+create policy "upload proof media" on storage.objects
+  for insert with check (
+    bucket_id = 'proof-media'
+    and auth.uid() is not null
+  );
+
+-- Nobody may overwrite or remove evidence through the anon key. Replacing a
+-- photograph after it has been cited is indistinguishable from tampering.
+drop policy if exists "no update proof media" on storage.objects;
+drop policy if exists "no delete proof media" on storage.objects;
+
+-- ------------------------------------------------- identity, stamped by PG ----
+--
+-- The uid is defaulted server-side rather than sent by the caller. A client
+-- that never supplies user_id cannot supply the wrong one, which removes an
+-- entire class of impersonation bug before it can be written.
+
+alter table submissions alter column user_id set default auth.uid();
+alter table proofs      alter column user_id set default auth.uid();
+alter table complaints  alter column user_id set default auth.uid();
+alter table receipts    alter column user_id set default auth.uid();

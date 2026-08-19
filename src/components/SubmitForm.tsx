@@ -7,7 +7,12 @@ import { CATEGORY_LABEL } from '@/lib/status';
 import { Card } from './ui';
 import { PlacePicker } from './PlacePicker';
 import { EMPTY_PLACE, localityFrom, type PlaceValue } from '@/lib/geo';
-import { getSupabase, PROOF_BUCKET } from '@/lib/supabase';
+import { getBrowserSupabase, ensureAnonSession, PROOF_BUCKET } from '@/lib/supabase';
+import {
+  evidenceTier,
+  EVIDENCE_TIER_LABEL,
+  NO_PROOF_MESSAGE,
+} from '@/lib/intake';
 import type { Category, ReceiptKind } from '@/lib/types';
 
 const RECEIPT_KINDS: { value: ReceiptKind; label: string; hint: string }[] = [
@@ -76,6 +81,18 @@ export function SubmitForm() {
   const rows = extraction.commitments.map((c, i) => ({ ...c, ...edits[i] }));
   const kept = rows.filter((_, i) => !dropped.has(i));
 
+  // Proof is the price of naming somebody in public. Checked here so the
+  // button can explain itself before it is pressed, again in the API route
+  // because a form can be skipped, and again in Postgres because a route can
+  // be skipped too. A link is enough; it is simply worth less than a photo.
+  const hasEvidence = files.length > 0 || sourceUrl.trim().length > 0;
+  const tier = evidenceTier({
+    media: files.map((f) => f.name),
+    sourceUrl: sourceUrl.trim(),
+    receiptKind,
+    signed: receiptSigned,
+  });
+
   function patch(i: number, p: Partial<ExtractedCommitment>) {
     setEdits((prev) => ({ ...prev, [i]: { ...prev[i], ...p } }));
   }
@@ -88,8 +105,11 @@ export function SubmitForm() {
    * would leave a row claiming evidence it does not have.
    */
   async function uploadReceiptMedia(): Promise<string[]> {
-    const sb = getSupabase();
+    const sb = getBrowserSupabase();
     if (!sb || files.length === 0) return [];
+    // Uploading now requires an identity, so make sure one exists first. It
+    // costs the reader nothing and no interstitial appears.
+    await ensureAnonSession();
     setUploading(true);
     try {
       const urls: string[] = [];
@@ -110,10 +130,20 @@ export function SubmitForm() {
     setBusy(true);
     setResult(null);
     try {
+      if (!hasEvidence) {
+        setResult({ ok: false, message: NO_PROOF_MESSAGE });
+        return;
+      }
       const mediaUrls = await uploadReceiptMedia();
+      // Forwarded so Postgres can stamp the row with this submitter's uid and
+      // they can find it again under "My logs".
+      const token = await ensureAnonSession();
       const res = await fetch('/api/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           sourceUrl,
           publisher: publisher.trim() || 'Unattributed post',
@@ -438,7 +468,7 @@ export function SubmitForm() {
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="submit"
-              disabled={busy || kept.length === 0 || !place.state}
+              disabled={busy || kept.length === 0 || !place.state || !hasEvidence}
               className="rounded-full bg-ink px-4 py-2 text-[0.85rem] font-semibold text-paper transition-opacity hover:opacity-85 disabled:opacity-40"
             >
               {uploading
@@ -447,6 +477,21 @@ export function SubmitForm() {
                   ? 'Submitting…'
                   : `Submit ${kept.length} promise${kept.length === 1 ? '' : 's'}`}
             </button>
+            {hasEvidence ? (
+              <span
+                className="rounded-full px-2.5 py-1 text-[0.72rem] font-semibold"
+                style={{
+                  background: 'var(--band-kept-soft)',
+                  color: 'var(--band-kept-ink)',
+                }}
+              >
+                Evidence: {EVIDENCE_TIER_LABEL[tier]}
+              </span>
+            ) : (
+              <span className="text-[0.75rem] font-medium text-ink-3">
+                Add a photo or a link before submitting.
+              </span>
+            )}
             {result && (
               <p
                 role="status"

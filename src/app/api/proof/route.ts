@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSupabase } from '@/lib/supabase';
+import { getSupabaseAsUser, tokenFromRequest } from '@/lib/supabase';
 
 /**
  * Accepts citizen evidence.
@@ -55,7 +55,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const sb = getSupabase();
+  // Acts as the caller, so Postgres stamps `user_id` from the verified token.
+  const sb = getSupabaseAsUser(tokenFromRequest(request));
   if (!sb) {
     // Validated, but there is nowhere to put it. Say so plainly rather than
     // pretending it was filed.

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { getSupabase, PROOF_BUCKET } from '@/lib/supabase';
+import { getBrowserSupabase, ensureAnonSession, PROOF_BUCKET } from '@/lib/supabase';
 import { isFragile, waybackSaveUrl } from '@/lib/archive';
 import type { ReceiptKind } from '@/lib/types';
 
@@ -39,8 +39,9 @@ export function ReceiptForm({ commitmentId }: { commitmentId: string }) {
   const noArchive = files.length === 0;
 
   async function upload(): Promise<string[]> {
-    const sb = getSupabase();
+    const sb = getBrowserSupabase();
     if (!sb || files.length === 0) return [];
+    await ensureAnonSession();
     const urls: string[] = [];
     for (const file of files) {
       const path = `receipts/${commitmentId}/${Date.now()}-${file.name.replace(/[^\w.-]/g, '_')}`;

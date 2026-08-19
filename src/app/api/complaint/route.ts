@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSupabase } from '@/lib/supabase';
+import { getSupabaseAsUser, tokenFromRequest } from '@/lib/supabase';
 
 const CATEGORIES = new Set([
   'education',
@@ -55,7 +55,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const sb = getSupabase();
+  // Acts as the caller, so Postgres stamps `user_id` from the verified token.
+  const sb = getSupabaseAsUser(tokenFromRequest(request));
   if (!sb) {
     return NextResponse.json({
       ok: true,

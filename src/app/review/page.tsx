@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getServiceSupabase } from '@/lib/supabase';
 import { formatDate, formatDateTime } from '@/lib/format';
 import { Card, Empty } from '@/components/ui';
+import { ReviewActions } from '@/components/ReviewActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -214,6 +215,8 @@ export default async function ReviewPage({ searchParams }: PageProps<'/review'>)
                     Open the source ↗
                   </a>
                 )}
+
+                <ReviewActions id={s.id} token={expected} />
               </Card>
             ))
           )}
@@ -286,11 +289,15 @@ export default async function ReviewPage({ searchParams }: PageProps<'/review'>)
       <Card className="mt-10 p-5">
         <p className="eyebrow">Promoting a candidate</p>
         <p className="mt-2 text-[0.85rem] leading-relaxed text-ink-2">
-          There is no accept button here yet. Promotion is done in the Supabase
-          dashboard by inserting into <code className="font-mono">commitments</code>{' '}
-          and setting the queue row to <code className="font-mono">accepted</code>.
-          Building a one-click accept before the reviewing workflow has been used
-          in anger would be guessing at what reviewers actually need.
+          Public submissions can be accepted from here: it writes the rows into{' '}
+          <code className="font-mono">commitments</code>, attaches the archived
+          files as receipts, and closes the queue row. Sweep candidates still
+          have no button, on purpose — machine output naming an official should
+          cost a reviewer more effort than one click, not less.
+        </p>
+        <p className="mt-2 text-[0.85rem] leading-relaxed text-ink-2">
+          Nothing is ever deleted. A rejected row stays here marked rejected, so
+          a decision can be audited afterwards.
         </p>
       </Card>
     </Shell>

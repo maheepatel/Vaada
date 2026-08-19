@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getSupabase } from '@/lib/supabase';
+import { getSupabaseAsUser, tokenFromRequest } from '@/lib/supabase';
+import {
+  safeHttpUrl,
+  safeHttpUrls,
+  hasProof,
+  NO_PROOF_MESSAGE,
+} from '@/lib/intake';
 import { slugify } from '@/lib/format';
 
 /**
@@ -77,9 +83,15 @@ export async function POST(request: Request) {
   }
 
   const receipt = (payload.receipt ?? {}) as Record<string, unknown>;
-  const receiptMedia = Array.isArray(receipt.mediaUrls)
-    ? (receipt.mediaUrls as unknown[]).map(String).slice(0, 12)
-    : [];
+  const receiptMedia = safeHttpUrls(receipt.mediaUrls, 12);
+  const sourceUrl = safeHttpUrl(payload.sourceUrl);
+
+  // The actual proof boundary. The form refuses to submit without evidence and
+  // Postgres refuses to store a row without it, but this is the check that
+  // stops somebody posting straight at the endpoint in between.
+  if (!hasProof(receiptMedia, sourceUrl)) {
+    return NextResponse.json({ ok: false, message: NO_PROOF_MESSAGE }, { status: 400 });
+  }
 
   const logger = payload.loggedBy as { name?: unknown; email?: unknown } | null;
   const loggerEmail = logger?.email ? String(logger.email).trim().toLowerCase() : '';
@@ -90,7 +102,7 @@ export async function POST(request: Request) {
   const pincode = String(payload.pincode ?? '').trim();
 
   const submission = {
-    source_url: String(payload.sourceUrl ?? ''),
+    source_url: sourceUrl,
     publisher: String(payload.publisher ?? 'Unattributed post').slice(0, 120),
     raw_text: rawText.slice(0, 8000),
     promised_on: promisedOn,
@@ -118,7 +130,11 @@ export async function POST(request: Request) {
     review_status: 'queued',
   };
 
-  const sb = getSupabase();
+  // Acts as the caller rather than as the anon key, so Postgres stamps
+  // `user_id` from the verified token via the column default and the own-row
+  // policies apply. A caller with no session still gets through; they simply
+  // lose the ability to see their own submission later.
+  const sb = getSupabaseAsUser(tokenFromRequest(request));
   if (!sb) {
     return NextResponse.json({
       ok: true,

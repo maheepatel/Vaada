@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { getSupabase, PROOF_BUCKET } from '@/lib/supabase';
+import { getBrowserSupabase, ensureAnonSession, PROOF_BUCKET } from '@/lib/supabase';
 import { CATEGORY_LABEL } from '@/lib/status';
 import { Card } from './ui';
 import type { Category } from '@/lib/types';
@@ -56,9 +56,10 @@ export function ComplaintForm({
     setBusy(true);
     setResult(null);
     try {
-      const sb = getSupabase();
+      const sb = getBrowserSupabase();
       const mediaUrls: string[] = [];
       if (sb) {
+        await ensureAnonSession();
         for (const file of files) {
           const path = `complaints/${Date.now()}-${file.name.replace(/[^\w.-]/g, '_')}`;
           const { error } = await sb.storage.from(PROOF_BUCKET).upload(path, file);

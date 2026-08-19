@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { getSupabase, PROOF_BUCKET } from '@/lib/supabase';
+import { getBrowserSupabase, ensureAnonSession, PROOF_BUCKET } from '@/lib/supabase';
 import type { ProofKind, Proof } from '@/lib/types';
 
 const KINDS: { value: ProofKind; label: string; hint: string }[] = [
@@ -46,8 +46,9 @@ export function ProofForm({
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
 
   async function uploadFiles(): Promise<string[]> {
-    const sb = getSupabase();
+    const sb = getBrowserSupabase();
     if (!sb || files.length === 0) return [];
+    await ensureAnonSession();
     const urls: string[] = [];
     for (const file of files) {
       const path = `${commitmentId}/${Date.now()}-${file.name.replace(/[^\w.-]/g, '_')}`;
