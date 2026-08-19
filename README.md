@@ -7,7 +7,7 @@
 Every promise here was made out loud, in public, with a deadline the official
 chose themselves. This site publishes the countdown.
 
-[Method](#how-a-tile-gets-its-colour) · [Running it](#running-it) · [Hosting](DEPLOY.md) · [Contributing](CONTRIBUTING.md)
+[Method](#how-a-tile-gets-its-colour) · [Running it](#running-it) · [Hosting](DEPLOY.md) · [Contributing](CONTRIBUTING.md) · [Project notes](docs/PROJECT-NOTES.md)
 
 </div>
 
