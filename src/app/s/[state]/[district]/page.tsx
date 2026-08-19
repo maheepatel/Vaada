@@ -96,7 +96,7 @@ export default async function DistrictPage({
         </p>
       </header>
 
-      <div className="mt-3 border-y py-2">
+      <div className="mt-3">
         <StatRibbon
           items={[
             { value: score.total, label: 'tracked' },

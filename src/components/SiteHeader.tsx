@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { NavLinks, NavStrip } from './NavLinks';
+import { NavLinks, NavMenu } from './NavLinks';
 
 export function SiteHeader() {
   return (
@@ -17,25 +17,20 @@ export function SiteHeader() {
 
         <NavLinks />
 
+        {/* One route, one link. "State &amp; district rankings" used to sit here
+            as well, pointing at the same /rankings page the nav already
+            carries, so the header shipped two controls for one destination. */}
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <Link
-            href="/rankings"
-            className="rounded-full border px-3 py-1.5 text-[0.78rem] font-semibold text-ink-2 transition-colors hover:border-line-strong hover:text-ink sm:px-3.5"
-          >
-            <span className="hidden sm:inline">State &amp; district rankings</span>
-            <span className="sm:hidden">Rankings</span>
-          </Link>
-          <Link
             href="/submit"
-            className="rounded-full bg-ink px-3 py-1.5 text-[0.78rem] font-semibold text-paper transition-opacity hover:opacity-85 sm:px-3.5"
+            className="rounded-full bg-ink px-3.5 py-1.5 text-[0.78rem] font-semibold text-paper transition-opacity hover:opacity-85"
           >
             <span className="hidden sm:inline">Log a promise</span>
             <span className="sm:hidden">Log</span>
           </Link>
+          <NavMenu />
         </div>
       </div>
-
-      <NavStrip />
     </header>
   );
 }

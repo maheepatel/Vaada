@@ -44,23 +44,15 @@ export default async function HomePage() {
 
         {/* One line only. Anything longer here pushes the map down, and the map
             is the thing people came for. */}
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
-          <p className="max-w-3xl text-[0.92rem] leading-snug text-ink-2">
-            Every tile below is one promise with a fuse on it, lit by the official
-            who chose the date. Green means time left. Red means it went off and
-            nobody could show the work was done.
-          </p>
-          <Link
-            href="/rankings"
-            className="shrink-0 text-[0.78rem] font-semibold text-[var(--brand-ink)] hover:underline"
-          >
-            State &amp; district rankings →
-          </Link>
-        </div>
+        <p className="mt-3 max-w-3xl text-[0.92rem] leading-snug text-ink-2">
+          Every tile below is one promise with a fuse on it, lit by the official
+          who chose the date. Green means time left. Red means it went off and
+          nobody could show the work was done.
+        </p>
 
         {/* A single thin line of counts, so the headline numbers and the map are
             both on screen at once without the numbers displacing the map. */}
-        <div className="mt-3 border-y py-2">
+        <div className="mt-3">
           <StatRibbon
             items={[
               { value: score.total, label: 'tracked', href: '/register' },

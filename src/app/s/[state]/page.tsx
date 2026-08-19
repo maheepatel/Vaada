@@ -66,7 +66,7 @@ export default async function StatePage({ params }: PageProps<'/s/[state]'>) {
 
       {/* Counts as a single thin line, so the district boxes stay directly
           under the title rather than being pushed down by a block of tiles. */}
-      <div className="mt-3 border-y py-2">
+      <div className="mt-3">
         <StatRibbon
           items={[
             { value: score.total, label: 'tracked' },

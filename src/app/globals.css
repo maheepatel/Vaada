@@ -213,18 +213,14 @@ body {
 }
 
 /*
-  The header is one bar on large screens and two on small, because the nav
-  strip drops below it. Anything sticky underneath has to clear whichever is
-  showing, so the height lives here rather than being hard-coded per component.
+  The header is a single bar at every width. It used to grow a second row on
+  narrow screens, where the nav strip dropped below it, so this token had a
+  breakpoint override to match; the strip is now a menu button inside the bar
+  and the height is constant. Anything sticky underneath reads it from here
+  rather than hard-coding a clearance.
 */
 :root {
-  --header-h: 6.4rem;
-}
-
-@media (min-width: 1024px) {
-  :root {
-    --header-h: 3.5rem;
-  }
+  --header-h: 3.5rem;
 }
 
 /* Section eyebrows — small, wide, muted. Used above every major block. */

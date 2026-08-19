@@ -12,105 +12,85 @@ export interface KeyNumber {
 }
 
 /**
- * The headline figures, as one dense strip rather than a grid of cards.
+ * The headline figures as a wrapping grid.
  *
- * This replaced five stat cards for one reason: those cards pushed the map
- * itself below the fold, and the map is the product. A reader should be able to
- * see how many promises exist, how many were kept, and how many were missed
- * *and* the shape of the country without scrolling.
+ * This used to be a single `min-w-max` row inside an `overflow-x-auto`, which
+ * meant that on any screen narrower than the row it became a horizontally
+ * scrolling strip nested inside the vertically scrolling page. Two scroll axes
+ * meeting in a 40px band is unusable on a phone: the figures sat half-clipped
+ * by the band's own padding and the only way to read the last of them was to
+ * drag the strip sideways, which nothing on screen advertised.
  *
- * Horizontally scrollable on narrow screens rather than wrapping, so the row
- * never reflows into a second line that pushes the map down again.
+ * A grid cannot do that. It reflows to the space it is given, every cell is
+ * fully visible at every width, and the page keeps exactly one scroll axis.
  */
-export function KeyNumbers({ items }: { items: KeyNumber[] }) {
+function StatGrid({ items, size }: { items: KeyNumber[]; size: 'sm' | 'md' }) {
   return (
-    <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-      <dl className="flex min-w-max items-stretch gap-0 rounded-xl border bg-surface">
-        {items.map((item, i) => {
-          const body = (
-            <>
-              <dd
-                className="display tnum text-[1.7rem] leading-none sm:text-[2.1rem]"
-                style={item.tone ? { color: item.tone } : undefined}
-              >
-                {item.value}
-              </dd>
-              <dt className="mt-1 text-[0.7rem] font-medium leading-tight text-ink-2">
-                {item.label}
-              </dt>
-              {item.hint && (
-                <p className="mt-0.5 hidden text-[0.65rem] leading-tight text-ink-3 lg:block">
-                  {item.hint}
-                </p>
-              )}
-            </>
-          );
-
-          const cls = `flex min-w-[7.5rem] flex-col px-4 py-3 sm:min-w-0 sm:flex-1 sm:px-5 ${
-            i > 0 ? 'border-l' : ''
-          }`;
-
-          return item.href ? (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={`${cls} transition-colors hover:bg-surface-2`}
+    <ul
+      className={`grid grid-cols-2 gap-px overflow-hidden rounded-xl border bg-line sm:grid-cols-3 ${
+        items.length > 4 ? 'lg:grid-cols-6' : 'lg:grid-cols-4'
+      }`}
+    >
+      {items.map((item) => {
+        const body = (
+          <>
+            <span
+              className={`tnum block font-bold leading-none ${
+                size === 'sm'
+                  ? 'text-[1.05rem] sm:text-[1.15rem]'
+                  : 'display text-[1.6rem] sm:text-[1.9rem]'
+              }`}
+              style={item.tone ? { color: item.tone } : undefined}
             >
-              {body}
-            </Link>
-          ) : (
-            <div key={item.label} className={cls}>
-              {body}
-            </div>
-          );
-        })}
-      </dl>
-    </div>
+              {item.value}
+            </span>
+            <span className="mt-1 block text-[0.72rem] leading-tight font-medium text-ink-2">
+              {item.label}
+            </span>
+            {item.hint && (
+              <span className="mt-0.5 hidden text-[0.65rem] leading-tight text-ink-3 lg:block">
+                {item.hint}
+              </span>
+            )}
+          </>
+        );
+
+        const pad = size === 'sm' ? 'px-3 py-2.5' : 'px-4 py-3.5';
+
+        return (
+          <li key={item.label} className="bg-surface">
+            {item.href ? (
+              <Link
+                href={item.href}
+                className={`block h-full transition-colors hover:bg-surface-2 ${pad}`}
+              >
+                {body}
+              </Link>
+            ) : (
+              <div className={`h-full ${pad}`}>{body}</div>
+            )}
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
+/** The larger form, for pages where the numbers are the point. */
+export function KeyNumbers({ items }: { items: KeyNumber[] }) {
+  return <StatGrid items={items} size="md" />;
+}
+
 /**
- * The thinnest possible version of the headline figures — a single ~40px line.
+ * The compact form, used directly under a page title.
  *
- * It exists because of a genuine conflict: the map has to sit directly under
- * the title, and the map is two rows tall, which puts any normal stat block
- * below the fold. This ribbon fits above the map without displacing it, so a
- * reader sees both the shape of the country and the raw counts at once.
+ * It stays deliberately short so the thing below it — the map, the league
+ * table, the feed — is still on screen without scrolling. It is now self
+ * contained: it carries its own border and rounding, so call sites do not wrap
+ * it in a `border-y` band. That band was what clipped the figures.
  */
 export function StatRibbon({ items }: { items: KeyNumber[] }) {
-  return (
-    <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-      <ul className="flex min-w-max items-center gap-x-4 gap-y-1 sm:flex-wrap sm:gap-x-5">
-        {items.map((item) => {
-          const body = (
-            <>
-              <span
-                className="tnum text-[1.05rem] font-bold leading-none"
-                style={item.tone ? { color: item.tone } : undefined}
-              >
-                {item.value}
-              </span>
-              <span className="text-[0.78rem] leading-none text-ink-2">{item.label}</span>
-            </>
-          );
-          return (
-            <li key={item.label} className="flex items-baseline gap-1.5">
-              {item.href ? (
-                <Link
-                  href={item.href}
-                  className="flex items-baseline gap-1.5 rounded hover:underline"
-                >
-                  {body}
-                </Link>
-              ) : (
-                body
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
+  return <StatGrid items={items} size="sm" />;
 }
 
 /**
