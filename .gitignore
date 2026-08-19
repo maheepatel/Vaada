@@ -30,9 +30,13 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files. The example carries no secrets and is documentation, so it is
-# deliberately kept out of the ignore.
+# env files. `.env*` already covers .env, .env.local and every other variant;
+# the two that matter are named explicitly anyway so nobody has to reason about
+# glob precedence before trusting that their keys stay local. The example
+# carries no secrets and is documentation, so it is the one exception.
 .env*
+.env
+.env.local
 !.env.example
 
 # vercel

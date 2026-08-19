@@ -88,3 +88,22 @@ export function evidenceTier(opts: {
 /** The message shown when proof is missing. Same words in the form and the API. */
 export const NO_PROOF_MESSAGE =
   'Add proof before logging this: a photo, a screenshot, or a link to the post, news report or order. Without something checkable this is an allegation against a named person, and the register does not carry those.';
+
+/**
+ * What a failed write tells the person who triggered it.
+ *
+ * A Postgres error text names the table, the column and often the constraint
+ * that rejected the row. On a public endpoint that is a free schema map for
+ * anyone probing, and it is useless to the person who actually just wanted to
+ * log a promise. The detail goes to the server log where an operator can read
+ * it; the caller gets a sentence they can act on.
+ *
+ * `/api/review/decide` deliberately does NOT use this. It sits behind the
+ * review token, its only caller is an operator, and there the real message is
+ * the whole point.
+ */
+export function intakeFailure(scope: string, detail: string): string {
+  // Server-side only — this file is never imported by a client component.
+  console.error(`[intake:${scope}] ${detail}`);
+  return 'Could not save that just now. Nothing was stored, so please try again.';
+}

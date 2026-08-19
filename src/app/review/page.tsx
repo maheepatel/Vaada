@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { timingSafeEqual } from 'node:crypto';
 import { getServiceSupabase } from '@/lib/supabase';
 import { formatDate, formatDateTime } from '@/lib/format';
 import { Card, Empty } from '@/components/ui';
@@ -59,6 +61,13 @@ interface SubmissionRow {
   created_at: string;
 }
 
+function tokenMatches(given: string, expected: string): boolean {
+  const a = Buffer.from(given);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
+
 export default async function ReviewPage({ searchParams }: PageProps<'/review'>) {
   const { token } = await searchParams;
   const expected = process.env.REVIEW_TOKEN;
@@ -79,18 +88,13 @@ export default async function ReviewPage({ searchParams }: PageProps<'/review'>)
     );
   }
 
-  if (token !== expected) {
-    return (
-      <Shell>
-        <Card className="p-5">
-          <p className="text-[0.95rem] font-semibold">Not authorised.</p>
-          <p className="mt-2 text-[0.85rem] text-ink-2">
-            This queue needs a valid token.
-          </p>
-        </Card>
-      </Shell>
-    );
-  }
+  // A wrong or missing token gets a 404, not a "not authorised" page.
+  //
+  // The previous version answered 200 with an explanation, which mislabels the
+  // response for anything reading status codes and confirms to a scanner that
+  // this address is real and merely needs the right secret. A 404 says nothing.
+  // Compared in constant time for the same reason the API route does.
+  if (!tokenMatches(String(token ?? ''), expected)) notFound();
 
   const sb = getServiceSupabase();
   if (!sb) {

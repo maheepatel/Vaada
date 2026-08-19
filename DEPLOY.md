@@ -61,22 +61,88 @@ npx vercel --prod
 You now have a permanent URL such as `vaada.vercel.app`. That is the link to
 share for feedback.
 
-### 4. Set the variables you actually need
+### 4. Set the environment variables
 
-In the Vercel dashboard under **Settings → Environment Variables**:
+This is the step that decides whether the intake forms work on the live site.
+Miss it and the deployed app still renders the register, but every submission
+is validated and thrown away — exactly the behaviour described in
+`docs/SUPABASE-SETUP.md`.
 
-| Variable | Needed for | If missing |
+**Where to paste them:** Vercel dashboard → your project → **Settings** →
+**Environment Variables** → **Add New**.
+
+For each one, tick all three environments (**Production**, **Preview**,
+**Development**) unless the notes below say otherwise. Vercel keeps them
+encrypted at rest and they are never written into the repository.
+
+| Variable | Value to paste | Environments |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | correct links inside alert emails | links point at localhost |
-| `CRON_SECRET` | protecting `/api/cron/*` | **cron routes refuse every request in production** |
-| `REVIEW_TOKEN` | opening `/review` | the queue stays shut |
-| `NEXT_PUBLIC_SUPABASE_URL` | storing submissions | submissions validate but are not saved |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | storing submissions | as above |
-| `SUPABASE_SERVICE_ROLE_KEY` | seeding, moderation, cron reads | server-only, never expose |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Settings → API → Project URL | all three |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Settings → API → `anon` `public` | all three |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API → `service_role` `secret` | all three |
+| `NEXT_PUBLIC_SITE_URL` | your real domain, e.g. `https://vaada.vercel.app` | all three |
+| `REVIEW_TOKEN` | the long random string from your `.env.local` | all three |
+| `CRON_SECRET` | the long random string from your `.env.local` | all three |
+| `ALERTS_ENABLED` | `false` | all three |
+| `ALERTS_NOTIFY_AUTHORITIES` | `false` | all three |
 
-Leave every `ALERTS_*` variable unset for now. See the warning further down.
+To read the two secrets out of your local file without opening it:
 
-Redeploy after adding them: `npx vercel --prod`.
+```bash
+grep -E '^(REVIEW_TOKEN|CRON_SECRET)=' .env.local
+```
+
+**Never** paste `SUPABASE_SERVICE_ROLE_KEY` into a variable whose name begins
+`NEXT_PUBLIC_`. That prefix is what tells Next.js to inline a value into the
+JavaScript bundle every visitor downloads. The service-role key bypasses every
+row-level security policy in the database; inlining it would hand full read and
+write access to anyone who opens DevTools.
+
+### 5. Point Supabase at the deployed domain
+
+Two settings in the Supabase dashboard have to know your Vercel URL, or auth
+silently fails in production while working perfectly on localhost.
+
+1. **Authentication → URL Configuration → Site URL** — set it to your Vercel
+   domain, e.g. `https://vaada.vercel.app`.
+2. **Authentication → URL Configuration → Redirect URLs** — add the same
+   domain with a wildcard path: `https://vaada.vercel.app/**`.
+
+### 6. Confirm anonymous sign-ins are still on
+
+**Authentication → Sign In / Providers → Anonymous sign-ins.** This is the same
+toggle from the local setup and it is per-project, not per-environment, so if
+you switched it on for local development it is already on. If it is off:
+uploads fail, `user_id` is never stamped, and `/my` is permanently empty,
+because every own-row policy compares against `auth.uid()`.
+
+While you are there, **Authentication → Rate Limits** governs how fast
+anonymous identities can be created. The default of 30/hour per IP is a
+reasonable starting point for a public site.
+
+### 7. Redeploy and verify
+
+Environment variables are read at build time, so existing deployments do not
+pick them up. Trigger a fresh one:
+
+```bash
+npx vercel --prod
+```
+
+Then on the live site, in order:
+
+1. Open `/` — the map renders.
+2. Open `/submit`, press **Use the example**, pick a state, and try to submit
+   with no evidence. The button stays disabled.
+3. Add a link, submit, and expect `Queued N promises for review.`
+4. Supabase → Table Editor → `submissions`. Your row is there with a
+   `user_id` and a computed `evidence_tier`.
+5. Open `/my` — the submission is listed.
+6. Open `https://YOURSITE/review?token=YOUR_REVIEW_TOKEN` and accept it.
+7. The promise now appears on the map and its state and district pages.
+
+If step 3 reports that no database is connected, the variables were added but
+the project was not redeployed after adding them.
 
 ### A note on the cron jobs
 

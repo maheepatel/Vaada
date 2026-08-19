@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAsUser, tokenFromRequest } from '@/lib/supabase';
+import { intakeFailure } from '@/lib/intake';
 
 const CATEGORIES = new Set([
   'education',
@@ -15,7 +16,16 @@ const CATEGORIES = new Set([
 export async function POST(request: Request) {
   let payload: Record<string, unknown>;
   try {
-    payload = (await request.json()) as Record<string, unknown>;
+    const parsed: unknown = await request.json();
+    // JSON.parse('null') succeeds and returns null, and so does '"text"' and
+    // '42'. Every field read below would then throw, and an unhandled throw is
+    // a 500 — which tells anyone probing the endpoint that they have found
+    // something worth pushing on. A non-object body is a client error, so it
+    // leaves by the same 400 as any other malformed request.
+    if (parsed === null || typeof parsed !== 'object') {
+      throw new Error('Body is not a JSON object.');
+    }
+    payload = parsed as Record<string, unknown>;
   } catch {
     return NextResponse.json({ ok: false, message: 'Malformed request.' }, { status: 400 });
   }
@@ -80,7 +90,7 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json(
-      { ok: false, message: `Could not file it: ${error.message}` },
+      { ok: false, message: intakeFailure('complaint', error.message) },
       { status: 500 },
     );
   }
