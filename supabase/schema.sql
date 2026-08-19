@@ -584,3 +584,83 @@ alter table submissions alter column user_id set default auth.uid();
 alter table proofs      alter column user_id set default auth.uid();
 alter table complaints  alter column user_id set default auth.uid();
 alter table receipts    alter column user_id set default auth.uid();
+
+-- ========================================================================
+-- v3 — abuse limits.
+--
+-- Measured before writing this: forty submissions were accepted in fifteen
+-- seconds from a single laptop, sequentially, with nothing refused. Rows are
+-- cheap to create and a review queue is only useful if a human can read it, so
+-- an unthrottled intake endpoint is both a hosting bill and a denial of the
+-- product's actual function.
+--
+-- This lives in Postgres rather than in the API route on purpose. Serverless
+-- instances share no memory, so an in-process counter resets constantly and
+-- counts only its own instance; and a limit in the route can be skipped by
+-- anyone posting straight at PostgREST. A trigger cannot be gone around.
+-- ========================================================================
+
+create or replace function enforce_intake_rate() returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  ceiling int := tg_argv[0]::int;
+  stamp   text := tg_argv[1];
+  recent  int;
+begin
+  if new.user_id is null then
+    -- No identity attached. With anonymous sign-in enabled this should not
+    -- happen, so the few that appear share one tight bucket rather than each
+    -- getting a private allowance that nobody can attribute.
+    ceiling := greatest(ceiling / 4, 3);
+    execute format(
+      'select count(*) from %I where user_id is null and %I > now() - interval ''1 hour''',
+      tg_table_name, stamp
+    ) into recent;
+  else
+    execute format(
+      'select count(*) from %I where user_id = $1 and %I > now() - interval ''1 hour''',
+      tg_table_name, stamp
+    ) into recent using new.user_id;
+  end if;
+
+  if recent >= ceiling then
+    -- 54000 is program_limit_exceeded. The API route maps it to HTTP 429 and
+    -- tells the person to come back later, rather than the generic failure a
+    -- constraint violation would produce.
+    raise exception 'Rate limit reached: % per hour for %', ceiling, tg_table_name
+      using errcode = '54000';
+  end if;
+
+  return new;
+end $$;
+
+-- Ceilings are set well above what a person logging real promises will hit and
+-- well below what makes flooding worthwhile. A volunteer at a protest might
+-- log a dozen commitments in an hour; nobody legitimately files two hundred.
+
+drop trigger if exists submissions_rate on submissions;
+create trigger submissions_rate before insert on submissions
+  for each row execute function enforce_intake_rate('20', 'created_at');
+
+drop trigger if exists proofs_rate on proofs;
+create trigger proofs_rate before insert on proofs
+  for each row execute function enforce_intake_rate('30', 'submitted_at');
+
+drop trigger if exists complaints_rate on complaints;
+create trigger complaints_rate before insert on complaints
+  for each row execute function enforce_intake_rate('15', 'filed_at');
+
+drop trigger if exists receipts_rate on receipts;
+create trigger receipts_rate before insert on receipts
+  for each row execute function enforce_intake_rate('30', 'created_at');
+
+-- The indexes these counts run against. Without them the trigger degrades into
+-- a sequential scan on every insert, which turns the rate limiter itself into
+-- the denial of service it exists to prevent.
+create index if not exists submissions_rate_idx on submissions (user_id, created_at desc);
+create index if not exists proofs_rate_idx      on proofs (user_id, submitted_at desc);
+create index if not exists complaints_rate_idx  on complaints (user_id, filed_at desc);
+create index if not exists receipts_rate_idx    on receipts (user_id, created_at desc);

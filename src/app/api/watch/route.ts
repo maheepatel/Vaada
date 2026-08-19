@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/supabase';
-import { intakeFailure } from '@/lib/intake';
+import { intakeFailure,
+  bodyTooLarge,
+  TOO_LARGE_MESSAGE,
+  isRateLimited,
+  RATE_LIMITED_MESSAGE,
+} from '@/lib/intake';
 
 const ROLES = new Set(['logger', 'follower', 'journalist', 'official']);
 
@@ -13,6 +18,11 @@ const ROLES = new Set(['logger', 'follower', 'journalist', 'official']);
  * for spamming a third party.
  */
 export async function POST(request: Request) {
+  // Checked before the body is touched: parsing is the expensive part.
+  if (bodyTooLarge(request)) {
+    return NextResponse.json({ ok: false, message: TOO_LARGE_MESSAGE }, { status: 413 });
+  }
+
   let payload: Record<string, unknown>;
   try {
     const parsed: unknown = await request.json();
@@ -76,8 +86,10 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json(
-      { ok: false, message: intakeFailure('watch', error.message) },
-      { status: 500 },
+      isRateLimited(error.message)
+        ? { ok: false, message: RATE_LIMITED_MESSAGE }
+        : { ok: false, message: intakeFailure('watch', error.message) },
+      { status: isRateLimited(error.message) ? 429 : 500 },
     );
   }
 

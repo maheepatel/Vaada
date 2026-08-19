@@ -107,3 +107,45 @@ export function intakeFailure(scope: string, detail: string): string {
   console.error(`[intake:${scope}] ${detail}`);
   return 'Could not save that just now. Nothing was stored, so please try again.';
 }
+
+/**
+ * The largest intake body worth reading.
+ *
+ * A 6MB request was accepted before this existed. Nothing in it survived —
+ * `publisher` is sliced to 120 characters, `rawText` to 8000 — but the server
+ * still parsed six megabytes of JSON to discover that, and on a per-request
+ * billed platform the parsing IS the attack. A real submission with 25 drafts
+ * and 12 media URLs comes to a few kilobytes, so this is generous by two
+ * orders of magnitude.
+ */
+export const MAX_INTAKE_BYTES = 256 * 1024;
+
+/**
+ * Rejects an oversized body before `request.json()` is called.
+ *
+ * Content-Length can be absent or lied about, so this is a cheap first gate
+ * rather than the whole defence; the platform enforces its own hard ceiling
+ * above it. What it does reliably stop is the honest large payload, which is
+ * what a script hammering the endpoint actually sends.
+ */
+export function bodyTooLarge(request: Request): boolean {
+  const len = Number(request.headers.get('content-length') ?? '0');
+  return Number.isFinite(len) && len > MAX_INTAKE_BYTES;
+}
+
+export const TOO_LARGE_MESSAGE =
+  'That request is too big. Paste the post text rather than a whole page, and attach photos as files.';
+
+/**
+ * Did Postgres refuse this because the caller is going too fast?
+ *
+ * The rate limit is a trigger, so it arrives as an ordinary insert error. It
+ * deserves a 429 and a sentence a person can act on, not the generic failure
+ * every other database error gets.
+ */
+export function isRateLimited(message: string): boolean {
+  return /rate limit reached/i.test(message);
+}
+
+export const RATE_LIMITED_MESSAGE =
+  'You have logged a lot in the last hour. Give it an hour and carry on — the limit exists so a flood cannot bury the queue a person has to read.';

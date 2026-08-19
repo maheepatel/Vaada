@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAsUser, tokenFromRequest } from '@/lib/supabase';
-import { intakeFailure } from '@/lib/intake';
+import { intakeFailure,
+  bodyTooLarge,
+  TOO_LARGE_MESSAGE,
+  isRateLimited,
+  RATE_LIMITED_MESSAGE,
+} from '@/lib/intake';
 
 const CATEGORIES = new Set([
   'education',
@@ -14,6 +19,11 @@ const CATEGORIES = new Set([
 
 /** Complaints always start `open`. Only a reviewer can move them on. */
 export async function POST(request: Request) {
+  // Checked before the body is touched: parsing is the expensive part.
+  if (bodyTooLarge(request)) {
+    return NextResponse.json({ ok: false, message: TOO_LARGE_MESSAGE }, { status: 413 });
+  }
+
   let payload: Record<string, unknown>;
   try {
     const parsed: unknown = await request.json();
@@ -90,8 +100,10 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json(
-      { ok: false, message: intakeFailure('complaint', error.message) },
-      { status: 500 },
+      isRateLimited(error.message)
+        ? { ok: false, message: RATE_LIMITED_MESSAGE }
+        : { ok: false, message: intakeFailure('complaint', error.message) },
+      { status: isRateLimited(error.message) ? 429 : 500 },
     );
   }
 

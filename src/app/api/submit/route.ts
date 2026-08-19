@@ -6,6 +6,10 @@ import {
   hasProof,
   NO_PROOF_MESSAGE,
   intakeFailure,
+  bodyTooLarge,
+  TOO_LARGE_MESSAGE,
+  isRateLimited,
+  RATE_LIMITED_MESSAGE,
 } from '@/lib/intake';
 import { slugify } from '@/lib/format';
 
@@ -28,6 +32,11 @@ interface DraftIn {
 }
 
 export async function POST(request: Request) {
+  // Checked before the body is touched: parsing is the expensive part.
+  if (bodyTooLarge(request)) {
+    return NextResponse.json({ ok: false, message: TOO_LARGE_MESSAGE }, { status: 413 });
+  }
+
   let payload: Record<string, unknown>;
   try {
     const parsed: unknown = await request.json();
@@ -155,8 +164,10 @@ export async function POST(request: Request) {
   const { error } = await sb.from('submissions').insert(submission);
   if (error) {
     return NextResponse.json(
-      { ok: false, message: intakeFailure('submit', error.message) },
-      { status: 500 },
+      isRateLimited(error.message)
+        ? { ok: false, message: RATE_LIMITED_MESSAGE }
+        : { ok: false, message: intakeFailure('submit', error.message) },
+      { status: isRateLimited(error.message) ? 429 : 500 },
     );
   }
 
