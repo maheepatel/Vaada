@@ -710,3 +710,54 @@ create trigger proof_media_rate before insert on storage.objects
 create index if not exists proof_media_owner_idx
   on storage.objects (owner, created_at desc)
   where bucket_id = 'proof-media';
+
+-- ========================================================================
+-- v4 — a submitter may correct or withdraw their own queued row.
+--
+-- This is the first UPDATE and DELETE policy in the file, and it is a
+-- deliberate narrowing of the rule rather than an exception to it. The rule
+-- exists so the REGISTER cannot be edited: once a promise is public, people
+-- cite it, and a row that can change underneath a citation is worthless.
+--
+-- A queued submission is not the register. It is not public, no reviewer has
+-- accepted it, and nothing links to it. Someone who mistyped a school's name,
+-- or who thought better of filing under their own account in a place where
+-- that carries risk, must be able to fix or retract it. Both policies stop
+-- dead at `review_status = 'queued'`: the moment a reviewer accepts a row it
+-- becomes immutable to its author like everything else.
+-- ========================================================================
+
+drop policy if exists "update own queued submissions" on submissions;
+create policy "update own queued submissions" on submissions
+  for update
+  using (
+    auth.uid() is not null
+    and user_id = auth.uid()
+    and review_status = 'queued'
+  )
+  with check (
+    auth.uid() is not null
+    and user_id = auth.uid()
+    -- Cannot promote their own row by writing 'accepted' into it.
+    and review_status = 'queued'
+    and reviewed_by is null
+  );
+
+drop policy if exists "delete own queued submissions" on submissions;
+create policy "delete own queued submissions" on submissions
+  for delete
+  using (
+    auth.uid() is not null
+    and user_id = auth.uid()
+    and review_status = 'queued'
+  );
+
+-- Column-level privilege, which RLS alone cannot express.
+--
+-- Without this an author could edit `source_url`, and the URL sanitising that
+-- keeps `javascript:` out of a field the review queue renders as a link lives
+-- in the API route — an update sent straight to PostgREST would go around it.
+-- Granting only `drafts` means the sole editable content is text that every
+-- render path escapes.
+revoke update on submissions from authenticated;
+grant update (drafts) on submissions to authenticated;

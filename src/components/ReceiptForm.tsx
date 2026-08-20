@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
+import { toastResult } from './Toast';
 import { getBrowserSupabase, ensureAnonSession, PROOF_BUCKET } from '@/lib/supabase';
 import { isFragile, waybackSaveUrl } from '@/lib/archive';
 import type { ReceiptKind } from '@/lib/types';
@@ -34,6 +35,13 @@ export function ReceiptForm({ commitmentId }: { commitmentId: string }) {
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  // Every form reports the same way: the message stays on the page as a
+  // record of what happened, and a toast announces it once. Sonner owns the
+  // aria-live region, so the announcement is not duplicated by the inline copy.
+  const report = (r: { ok: boolean; message: string } | null) => {
+    setResult(r);
+    if (r) toastResult(r);
+  };
 
   const fragileLink = url.trim().length > 0 && isFragile(url);
   const noArchive = files.length === 0;
@@ -55,7 +63,7 @@ export function ReceiptForm({ commitmentId }: { commitmentId: string }) {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    setResult(null);
+    report(null);
     try {
       const mediaUrls = await upload();
       const res = await fetch('/api/receipt', {
@@ -74,7 +82,7 @@ export function ReceiptForm({ commitmentId }: { commitmentId: string }) {
         }),
       });
       const json = (await res.json()) as { ok: boolean; message: string };
-      setResult(json);
+      report(json);
       if (json.ok) {
         setTitle('');
         setQuote('');
@@ -82,7 +90,7 @@ export function ReceiptForm({ commitmentId }: { commitmentId: string }) {
         setFiles([]);
       }
     } catch (err) {
-      setResult({
+      report({
         ok: false,
         message: err instanceof Error ? err.message : 'Could not add the receipt.',
       });

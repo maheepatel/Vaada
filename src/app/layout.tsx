@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
+import { Toaster } from '@/components/Toast';
 import './globals.css';
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />
+        <Toaster />
       </body>
     </html>
   );

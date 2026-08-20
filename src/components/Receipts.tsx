@@ -173,6 +173,14 @@ function ReceiptCard({ receipt: r }: { receipt: Receipt }) {
                   <img
                     src={u}
                     alt={r.title}
+                    // Proof media is the heaviest thing on the page and the
+                    // readers this is built for are on cheap phones and patchy
+                    // networks. Thumbnails only; the full file is one tap away
+                    // through the enclosing link.
+                    loading="lazy"
+                    decoding="async"
+                    width={112}
+                    height={112}
                     className="h-28 w-28 rounded-lg border object-cover transition-opacity hover:opacity-85"
                   />
                 </a>

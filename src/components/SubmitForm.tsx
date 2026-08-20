@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, type FormEvent } from 'react';
+import { toastResult } from './Toast';
 import { extractCommitments, type ExtractedCommitment } from '@/lib/extract';
 import { formatDate, roughDuration } from '@/lib/format';
 import { CATEGORY_LABEL } from '@/lib/status';
@@ -61,6 +62,13 @@ export function SubmitForm() {
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  // Every form reports the same way: the message stays on the page as a
+  // record of what happened, and a toast announces it once. Sonner owns the
+  // aria-live region, so the announcement is not duplicated by the inline copy.
+  const report = (r: { ok: boolean; message: string } | null) => {
+    setResult(r);
+    if (r) toastResult(r);
+  };
 
   // Captured once at mount. Deadlines are offsets from the promise date, so
   // this only has to stand in when the date field is mid-edit and unparseable —
@@ -128,10 +136,10 @@ export function SubmitForm() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    setResult(null);
+    report(null);
     try {
       if (!hasEvidence) {
-        setResult({ ok: false, message: NO_PROOF_MESSAGE });
+        report({ ok: false, message: NO_PROOF_MESSAGE });
         return;
       }
       const mediaUrls = await uploadReceiptMedia();
@@ -171,9 +179,9 @@ export function SubmitForm() {
           commitments: kept,
         }),
       });
-      setResult((await res.json()) as { ok: boolean; message: string });
+      report((await res.json()) as { ok: boolean; message: string });
     } catch (err) {
-      setResult({
+      report({
         ok: false,
         message: err instanceof Error ? err.message : 'Submission failed.',
       });

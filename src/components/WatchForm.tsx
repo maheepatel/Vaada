@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
+import { toastResult } from './Toast';
 import { Card } from './ui';
 import type { Watcher } from '@/lib/types';
 
@@ -31,11 +32,18 @@ export function WatchForm({
   const [role, setRole] = useState<Watcher['role']>('follower');
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  // Every form reports the same way: the message stays on the page as a
+  // record of what happened, and a toast announces it once. Sonner owns the
+  // aria-live region, so the announcement is not duplicated by the inline copy.
+  const report = (r: { ok: boolean; message: string } | null) => {
+    setResult(r);
+    if (r) toastResult(r);
+  };
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    setResult(null);
+    report(null);
     try {
       const res = await fetch('/api/watch', {
         method: 'POST',
@@ -43,10 +51,10 @@ export function WatchForm({
         body: JSON.stringify({ commitmentId, email, name, role }),
       });
       const json = (await res.json()) as { ok: boolean; message: string };
-      setResult(json);
+      report(json);
       if (json.ok) setEmail('');
     } catch (err) {
-      setResult({
+      report({
         ok: false,
         message: err instanceof Error ? err.message : 'Could not subscribe.',
       });

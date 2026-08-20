@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
+import { toastResult } from './Toast';
 import { getBrowserSupabase, ensureAnonSession, PROOF_BUCKET } from '@/lib/supabase';
 import type { ProofKind, Proof } from '@/lib/types';
 
@@ -44,6 +45,13 @@ export function ProofForm({
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  // Every form reports the same way: the message stays on the page as a
+  // record of what happened, and a toast announces it once. Sonner owns the
+  // aria-live region, so the announcement is not duplicated by the inline copy.
+  const report = (r: { ok: boolean; message: string } | null) => {
+    setResult(r);
+    if (r) toastResult(r);
+  };
 
   async function uploadFiles(): Promise<string[]> {
     const sb = getBrowserSupabase();
@@ -62,7 +70,7 @@ export function ProofForm({
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    setResult(null);
+    report(null);
     try {
       const mediaUrls = await uploadFiles();
       const res = await fetch('/api/proof', {
@@ -79,13 +87,13 @@ export function ProofForm({
         }),
       });
       const json = (await res.json()) as { ok: boolean; message: string };
-      setResult(json);
+      report(json);
       if (json.ok) {
         setClaim('');
         setFiles([]);
       }
     } catch (err) {
-      setResult({
+      report({
         ok: false,
         message: err instanceof Error ? err.message : 'Something went wrong.',
       });

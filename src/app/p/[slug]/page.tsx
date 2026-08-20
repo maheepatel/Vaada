@@ -446,6 +446,10 @@ function ProofCard({ proof }: { proof: Proof }) {
                   key={u}
                   src={u}
                   alt=""
+                  loading="lazy"
+                  decoding="async"
+                  width={80}
+                  height={80}
                   className="h-20 w-20 rounded-lg border object-cover"
                 />
               ))}
@@ -508,6 +512,10 @@ function Timeline({ events }: { events: TimelineEvent[] }) {
                   <img
                     src={u}
                     alt={e.label}
+                    loading="lazy"
+                    decoding="async"
+                    width={80}
+                    height={80}
                     className="h-20 w-20 rounded-lg border object-cover transition-opacity hover:opacity-85"
                   />
                 </a>

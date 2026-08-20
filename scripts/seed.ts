@@ -9,14 +9,18 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { COMMITMENTS, PROOFS, COMPLAINTS } from '../src/data/seed';
+import { COMMITMENTS, PROOFS, COMPLAINTS, RECEIPTS } from '../src/data/seed';
+import { loadEnv } from './load-env';
+
+// tsx runs this in a bare Node process, so nothing has read .env.local yet.
+loadEnv();
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!url || !serviceKey) {
   console.error(
-    'Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY before running this.',
+    'Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.local before running this.',
   );
   process.exit(1);
 }
@@ -94,6 +98,29 @@ async function main() {
   const { error: cmErr } = await sb.from('complaints').insert(complaintRows);
   if (cmErr) throw cmErr;
   console.log(`✓ ${complaintRows.length} complaints`);
+
+  // Receipts were exported from the seed file but never loaded, so a seeded
+  // project had commitments with no proof that they had been promised at all
+  // — and unlike `getCommitments`, `getReceipts` has no fall back to the file
+  // when the table comes back empty, so the evidence simply vanished from
+  // every promise page.
+  const receiptRows = RECEIPTS.map((r) => ({
+    commitment_id: r.commitmentId,
+    kind: r.kind,
+    title: r.title,
+    description: r.description ?? null,
+    media_urls: r.mediaUrls,
+    url: r.url ?? null,
+    document_date: r.documentDate,
+    signed: r.signed,
+    quote: r.quote ?? null,
+    added_by: r.addedBy,
+    verified: r.verified,
+  }));
+
+  const { error: rErr } = await sb.from('receipts').insert(receiptRows);
+  if (rErr) throw rErr;
+  console.log(`✓ ${receiptRows.length} receipts`);
 }
 
 main().catch((err: unknown) => {
