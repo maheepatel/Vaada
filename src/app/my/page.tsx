@@ -322,6 +322,30 @@ function LogRow({ row, onChanged }: { row: Row; onChanged: () => Promise<void> }
         )}
       </div>
 
+      {/* The evidence itself, not a count of it. Somebody checking their own
+          submission needs to see that the right photograph went up — "1 file
+          archived" tells them a file exists, which is not the same thing and
+          is exactly the case where a wrong or empty upload goes unnoticed. */}
+      {row.receipt_media && row.receipt_media.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {row.receipt_media.map((u) => (
+            <a key={u} href={u} target="_blank" rel="noopener noreferrer">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={u}
+                alt="Evidence you attached"
+                loading="lazy"
+                decoding="async"
+                width={72}
+                height={72}
+                className="size-18 rounded-lg border object-cover transition-opacity hover:opacity-85"
+              />
+            </a>
+          ))}
+        </div>
+      )}
+
+
       {editable && (
         <div className="mt-3 flex flex-wrap items-center gap-2 border-t pt-3">
           {editing ? (

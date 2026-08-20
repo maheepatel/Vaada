@@ -194,3 +194,84 @@ export function Empty({ title, hint }: { title: string; hint?: string }) {
     </div>
   );
 }
+
+/**
+ * The one bar every promise card carries.
+ *
+ * Two quantities matter on this register and they are not the same thing:
+ *
+ *   how much of the promised window has been spent   (`elapsed`)
+ *   how much of the work has been verified done      (`progress`)
+ *
+ * The old card drew a bar only when `progress > 0`, so most rows had no bar at
+ * all while the thing that actually drives the product — the clock — appeared
+ * only as a text chip. That is why the list read as inconsistent: two different
+ * cards were showing two different measures, and neither consistently.
+ *
+ * Here both live in a single track. The tint is time spent; the solid fill is
+ * work verified. The gap between them is the entire thesis of the project — a
+ * deadline four-fifths gone with a tenth of the work done is visible at a
+ * glance, and needs no reading.
+ *
+ * Undated and unanswered promises have no clock, so they get a hatched empty
+ * track rather than no track. Every card keeps the same anatomy, which is what
+ * makes a column of them scannable.
+ */
+export function PromiseBar({
+  band,
+  elapsed,
+  progress,
+}: {
+  band: UrgencyBand;
+  /** 0-1 share of the promised window consumed. `null` when undated. */
+  elapsed: number | null;
+  /** 0-100, verified only. */
+  progress: number;
+}) {
+  const s = BAND_STYLE[band];
+  const kept = band === 'kept';
+  const noClock = elapsed === null;
+
+  // A kept promise reads as complete regardless of what the clock said.
+  const timePct = kept ? 100 : Math.max(0, Math.min(100, (elapsed ?? 0) * 100));
+  const workPct = kept ? 100 : Math.max(0, Math.min(100, progress));
+
+  return (
+    <div className="flex items-center gap-3">
+      <div
+        className={`relative h-2 flex-1 overflow-hidden rounded-full ${
+          noClock && !kept ? 'hatch-unanswered bg-surface-3' : 'bg-surface-3'
+        }`}
+        role="progressbar"
+        aria-valuenow={Math.round(workPct)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={
+          noClock
+            ? 'No deadline was given'
+            : `${Math.round(timePct)}% of the promised time used, ${Math.round(workPct)}% verified done`
+        }
+      >
+        {!noClock && (
+          <div
+            className="absolute inset-y-0 left-0 rounded-full"
+            style={{ width: `${timePct}%`, background: s.soft }}
+          />
+        )}
+        {workPct > 0 && (
+          <div
+            className="absolute inset-y-0 left-0 rounded-full"
+            style={{ width: `${workPct}%`, background: s.fill }}
+          />
+        )}
+      </div>
+
+      <span
+        className="tnum w-[4.5rem] shrink-0 text-right text-[0.7rem] font-semibold"
+        style={{ color: workPct > 0 ? s.softOn : 'var(--ink-3)' }}
+      >
+        {kept ? 'done' : workPct > 0 ? `${Math.round(workPct)}% done` : noClock ? 'no date' : 'not started'}
+      </span>
+    </div>
+  );
+}
