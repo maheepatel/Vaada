@@ -674,42 +674,40 @@ create index if not exists receipts_rate_idx    on receipts (user_id, created_at
 -- a plan whose free tier is one gigabyte — which exhausts storage, and on a
 -- metered plan becomes a bill rather than an outage.
 --
+-- This is expressed as a policy rather than as a trigger, which is how the
+-- other four tables do it. `storage.objects` belongs to supabase_storage_admin,
+-- so CREATE TRIGGER on it fails with "must be owner of table objects" — and
+-- because the SQL editor runs the whole file as one transaction, that single
+-- statement rolled back everything else with it. A policy needs no ownership.
+--
 -- 60 an hour is far more than a person documenting a school will ever attach
 -- and far less than makes filling the bucket practical.
 
-create or replace function enforce_storage_rate() returns trigger
-language plpgsql
+-- The count runs inside a SECURITY DEFINER function rather than as a subquery
+-- in the policy body. A policy that selects from the table it guards is asking
+-- Postgres to apply RLS while it is still deciding RLS; this side-steps that
+-- question entirely and keeps the policy readable.
+create or replace function proof_media_recent(uid uuid)
+returns int
+language sql
 security definer
 set search_path = storage, public
+stable
 as $$
-declare
-  recent int;
-begin
-  if new.bucket_id <> 'proof-media' then
-    return new;
-  end if;
-
-  select count(*) into recent
+  select count(*)::int
     from storage.objects
    where bucket_id = 'proof-media'
-     and owner is not distinct from new.owner
-     and created_at > now() - interval '1 hour';
+     and owner = uid
+     and created_at > now() - interval '1 hour'
+$$;
 
-  if recent >= 60 then
-    raise exception 'Rate limit reached: 60 uploads per hour'
-      using errcode = '54000';
-  end if;
-
-  return new;
-end $$;
-
-drop trigger if exists proof_media_rate on storage.objects;
-create trigger proof_media_rate before insert on storage.objects
-  for each row execute function enforce_storage_rate();
-
-create index if not exists proof_media_owner_idx
-  on storage.objects (owner, created_at desc)
-  where bucket_id = 'proof-media';
+drop policy if exists "upload proof media" on storage.objects;
+create policy "upload proof media" on storage.objects
+  for insert with check (
+    bucket_id = 'proof-media'
+    and auth.uid() is not null
+    and proof_media_recent(auth.uid()) < 60
+  );
 
 -- ========================================================================
 -- v4 — a submitter may correct or withdraw their own queued row.
@@ -759,5 +757,5 @@ create policy "delete own queued submissions" on submissions
 -- in the API route — an update sent straight to PostgREST would go around it.
 -- Granting only `drafts` means the sole editable content is text that every
 -- render path escapes.
-revoke update on submissions from authenticated;
+revoke update on submissions from authenticated, anon;
 grant update (drafts) on submissions to authenticated;
