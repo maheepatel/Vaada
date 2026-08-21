@@ -19,6 +19,7 @@ import { AccountablePanel } from '@/components/AccountablePanel';
 import { WatchForm } from '@/components/WatchForm';
 import { BandChip, Card, ProgressBar, SectionHeading, Empty } from '@/components/ui';
 import type { Proof, Source, TimelineEvent } from '@/lib/types';
+import { graph, promiseLd } from '@/lib/jsonld';
 
 export const revalidate = 60;
 
@@ -65,6 +66,16 @@ export default async function PromisePage({ params }: PageProps<'/p/[slug]'>) {
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6">
+      {/*
+        Per-promise structured data. This is the node an answer engine reads
+        when somebody asks whether a particular promise was kept, so the
+        description it carries uses the register's own careful wording rather
+        than anything a model might otherwise infer from a red colour.
+      */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(graph(promiseLd(c))) }}
+      />
       <nav className="mb-5 flex flex-wrap items-center gap-1.5 text-[0.8rem] text-ink-3">
         <Link href="/" className="hover:text-ink">Map</Link>
         <span>/</span>

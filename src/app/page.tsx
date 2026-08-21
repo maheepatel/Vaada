@@ -7,6 +7,7 @@ import { CommitmentRow } from '@/components/CommitmentRow';
 import { StatRibbon, PlainReading } from '@/components/KeyNumbers';
 import { Legend, SectionHeading, Card } from '@/components/ui';
 import type { StateRollup } from '@/lib/types';
+import { graph, datasetLd } from '@/lib/jsonld';
 
 // The whole page is a function of the clock, so it cannot be statically cached
 // for long. A minute is short enough that no tile is visibly stale and long
@@ -33,6 +34,17 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* The register as a Dataset. This is what puts it in Google Dataset
+          Search and tells a model the page is a structured record, not an
+          article, with live counts so a quoted figure is never stale. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            graph(datasetLd({ total: score.total, kept: score.kept, broken: score.broken })),
+          ),
+        }}
+      />
       {/* ===== Title, then the map, then the numbers ===== */}
       <section className="mx-auto max-w-[1400px] px-4 pt-6 sm:px-6 sm:pt-8">
         <p className="eyebrow">Public promise register · India</p>
