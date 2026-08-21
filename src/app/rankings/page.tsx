@@ -37,10 +37,10 @@ export default async function RankingsPage() {
     .sort((a, b) => (a.speed ?? 1) - (b.speed ?? 1));
 
   return (
-    <div className="mx-auto max-w-[1400px] px-4 py-7 sm:px-6">
+    <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6">
       {/* ===== Title, then the tables. Nothing in between. ===== */}
       <p className="eyebrow">Rankings</p>
-      <h1 className="h-page display mt-1.5">Who is actually delivering</h1>
+      <h1 className="h-page display mt-2">Who is actually delivering</h1>
       <p className="mt-2 max-w-2xl text-[0.9rem] leading-snug text-ink-2">
         Ranked by score: 70% on promises kept, 30% on verified work in the ones
         still running.

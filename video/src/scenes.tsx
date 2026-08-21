@@ -201,7 +201,6 @@ export const ClockScene: React.FC = () => {
  */
 export const CounterScene: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
 
   const count = Math.round(
     interpolate(frame, [6, 46], [0, 34], {

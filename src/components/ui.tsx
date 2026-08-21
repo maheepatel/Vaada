@@ -275,3 +275,73 @@ export function PromiseBar({
     </div>
   );
 }
+
+/**
+ * The page shell.
+ *
+ * Every route used to hand-type its own `mx-auto max-w-[...] px-4 py-10`, and
+ * they drifted into five different widths and three different vertical
+ * paddings. Register, Who answers and Complaints ended up 300px narrower than
+ * the Map, Rankings and Deadlines, which is why those pages read as inset and
+ * floaty next to the rest of the site.
+ *
+ * Two widths exist, and they are a deliberate choice rather than an accident:
+ *
+ *   wide     anything that displays the register — lists, tables, maps, forms
+ *            that sit beside data. 1400px.
+ *   reading  continuous prose and single-purpose forms, where a 1400px measure
+ *            would run past the ~75 characters a line can comfortably hold.
+ *
+ * Anything that needs a third width almost certainly wants one of these two.
+ */
+export function PageShell({
+  children,
+  width = 'wide',
+  className = '',
+}: {
+  children: React.ReactNode;
+  width?: 'wide' | 'reading';
+  className?: string;
+}) {
+  return (
+    <div
+      className={`mx-auto w-full px-4 py-10 sm:px-6 ${
+        width === 'wide' ? 'max-w-[1400px]' : 'max-w-[820px]'
+      } ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
+ * The page title block.
+ *
+ * Eyebrow, title, then one line of explanation, at fixed spacing. The lede is
+ * held to `max-w-3xl` even on a wide page: the container governs the data
+ * below, not the sentence above it, and a 1400px paragraph is unreadable.
+ */
+export function PageHeader({
+  eyebrow,
+  title,
+  children,
+  action,
+}: {
+  eyebrow: string;
+  title: React.ReactNode;
+  children?: React.ReactNode;
+  action?: React.ReactNode;
+}) {
+  return (
+    <header className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+      <div className="max-w-3xl">
+        <p className="eyebrow">{eyebrow}</p>
+        <h1 className="h-page display mt-2">{title}</h1>
+        {children && (
+          <div className="mt-3 text-[0.98rem] leading-relaxed text-ink-2">{children}</div>
+        )}
+      </div>
+      {action && <div className="shrink-0">{action}</div>}
+    </header>
+  );
+}

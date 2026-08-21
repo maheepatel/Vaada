@@ -104,7 +104,7 @@ export default function MyLogsPage() {
   }, [configured, load]);
 
   return (
-    <div className="mx-auto max-w-[900px] px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6">
       <header className="mb-8">
         <p className="eyebrow">Yours</p>
         <h1 className="h-page display mt-2">Promises you logged</h1>

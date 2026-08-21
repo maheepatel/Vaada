@@ -29,7 +29,7 @@ export default async function AuthorityIndexPage() {
     .slice(0, 5);
 
   return (
-    <div className="mx-auto max-w-[1100px] px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6">
       <header className="max-w-3xl">
         <p className="eyebrow">Accountability index</p>
         <h1 className="h-page display mt-2">

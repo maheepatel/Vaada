@@ -43,7 +43,7 @@ export default async function RegisterPage({ searchParams }: PageProps<'/registe
       : undefined;
 
   return (
-    <div className="mx-auto max-w-[1100px] px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6">
       <header className="max-w-3xl">
         <p className="eyebrow">The register</p>
         <h1 className="h-page display mt-2">

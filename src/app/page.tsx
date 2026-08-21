@@ -46,7 +46,7 @@ export default async function HomePage() {
         }}
       />
       {/* ===== Title, then the map, then the numbers ===== */}
-      <section className="mx-auto max-w-[1400px] px-4 pt-6 sm:px-6 sm:pt-8">
+      <section className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6">
         <p className="eyebrow">Public promise register · India</p>
         <h1 className="h-page display mt-2 max-w-4xl tracking-tight">
           They promised it in front of everyone.
