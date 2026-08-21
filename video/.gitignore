@@ -1,0 +1,5 @@
+# Remotion pins its own React and bundler; this tree is large and reinstallable.
+node_modules/
+
+# Renders. The mp4 is 29MB and regenerates from source in one command.
+out/

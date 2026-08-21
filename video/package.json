@@ -1,0 +1,23 @@
+{
+  "name": "vaada-launch-video",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Launch film for Vaada. Standalone from the Next app on purpose: Remotion pins its own React and bundler, and sharing node_modules with Next 16 causes version conflicts that are tedious to unpick.",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render VaadaLaunch out/vaada-launch.mp4 --codec=h264 --crf=18",
+    "render-vertical": "remotion render VaadaLaunchVertical out/vaada-launch-vertical.mp4 --codec=h264 --crf=18",
+    "still": "remotion still"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.290",
+    "@remotion/google-fonts": "^4.0.514",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "remotion": "4.0.290"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "typescript": "^5"
+  }
+}
