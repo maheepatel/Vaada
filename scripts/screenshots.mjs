@@ -47,12 +47,14 @@ const PORT = 9333;
 
 const SHOTS = [
   { name: 'home', path: '/', w: 1280, h: 980 },
-  { name: 'scoreboard', path: '/scoreboard', w: 1280, h: 980 },
+  { name: 'rankings', path: '/rankings', w: 1280, h: 980 },
   { name: 'district', path: '/s/rajasthan/alwar', w: 1280, h: 900 },
   { name: 'promise', path: '/p/jodhawas-commuting-road', w: 1280, h: 980 },
   { name: 'submit', path: '/submit', w: 1280, h: 900 },
   { name: 'authority', path: '/authority', w: 1280, h: 900 },
+  { name: 'deadlines', path: '/deadlines', w: 1280, h: 900 },
   { name: 'home-mobile', path: '/', w: 390, h: 860, mobile: true },
+  { name: 'promise-mobile', path: '/p/jodhawas-commuting-road', w: 390, h: 860, mobile: true },
 ];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
